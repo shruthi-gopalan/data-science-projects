@@ -1,0 +1,163 @@
+STOR 455 Homework #4
+
+Situation (again): Suppose that you are interested in purchasing a used car. How much should you expect to pay? Obviously the price will depend on the type of car you get (the model) and how much it’s been used. For this assignment you will investigate how the price might depend on the age, mileage, and the model of car.
+
+Data Source: Your sample of cars will again be taken from the UsedCar CSV file on Sakai. The data was acquired by scraping TrueCar.com for used car listings on 9/24/2017 and contains more than 1.2 million used cars. For Models #3 and #4, continue with the data that you collected in assignment #2 for modeling the price of a certain model of used car, based on the age and miles driven.
+
+In assignment #2, you chose a car Model for which there are at least 1000 in the dataset, and then created a new dataset containing a random sample of 100 of that Model of car. You then defined a variable called Age which was 2017-year (since the data was scraped in 2017).
+
+For Model #5, you will need to select three new samples of used cars from the UsedCar dataset. Choose a car Make (such as Toyota) for which there are at least three Models with 1000 cars in the dataset. Then create three new datasets, each containing random samples of 100 of that specific Model car. You should then use the rbind() function (to be discussed in class) to bind these three samples into one dataframe. As you did in assignment #2, you should again add a variable called Age which is 2017-year (since the data was scraped in 2017).
+```{r}
+library(mosaic)
+library(leaps)
+library(readr)
+library(car)
+
+UsedCars <- read_csv("UsedCars.csv")
+
+set.seed(1938675)
+X=sample_n(subset(UsedCars, Model == "Continental"),100)
+
+head(X,100)
+
+#Check for variability
+plot(Mileage~Year, data=X)
+
+#Create age
+a=2017
+X$Age <- (a-X$Year)
+
+#Create three random sample of 100 cars of Make = Toyota
+T1 = sample_n(subset(UsedCars, Make == "Toyota"),100)
+T2 = sample_n(subset(UsedCars, Make == "Toyota"),100)
+T3 = sample_n(subset(UsedCars, Make == "Toyota"),100)
+
+#New dataset
+toyota = rbind(T1,T2,T3)
+toyota$Age <- (a-toyota$Year)
+```
+MODEL #3: Polynomial models
+
+A) Fit a quadratic model using Age to predict Price and examine the residuals. Give the prediction equation and show a scatterplot of the data with the quadratic fit drawn on it.
+```{r}
+quadMod = lm(Price~Age+I(Age^2),data=X)
+summary(quadMod)
+#Prediction Equation: Price = 203836.1 - 23330.8(Age) + 849.3(Age^2)
+plot(Price~Age,main="Quadratic Model",data=X)
+curve(203836.1 - 23330.8*x + 849.3*x^2,add=TRUE)
+plot(quadMod$residuals~quadMod$fitted.values)
+abline(a=0,b=0)
+#The residuals look evenly distributed.
+```
+B) Perform a hypothesis test to determine if this model is significant. List your hypotheses, p-value, and conclusion.
+```{r}
+#Null hypothesis: The coefficient of the slope of the model is zero.
+#Alt hypothesis: The coefficient of the slope of the model is not zero.
+anova(quadMod)
+#Conclusion: The p-value of 2.2e-16 is less than 0.05, and therefore we can reject the null hypothesis.
+```
+C) You are looking at a 7-year-old car of your model and want to find an interval that is likely to contain its Price using your quadratic model. Construct an interval predict the value of this car, and include an interpretive sentence in context.
+```{r}
+newx = data.frame(Age = 7)
+predict.lm(quadMod,newx, interval="prediction", level =0.90)
+
+#We are 90% confident that the price will be between (63289.94,100978) when a car of age 7 and model "Continental" is chosen.
+```
+D) Does the quadratic model allow for some Age where a car has a zero or negative predicted price? Justify your answer using a calculation or graph.
+```{r}
+polyroot(c(203836.1,23330.8,849.3))
+#As can be seen by the calculation above, the roots are negative showing that the model does allow for negative prices. However, this is not a good representation of the model in real life, as a car with an age of zero or below cannot exist.
+```
+E) What happens in the quadratic model for cars that are very old? Can you think of a plausible “real world” explanation for this- or is it a flaw of the quadratic model?
+```{r}
+#The price decreases as the car becomes older. This can be explained by the fact that people are not willing to pay as much for a car that has been used for a longer time.
+```
+F) Would the fit improve significantly if you also included a cubic term? Does expanding your polynomial model to use a quartic term make significant improvements? Justify your answer.
+```{r}
+quadMod = lm(Price~Age+I(Age^2),data=X)
+cubicMod = lm(Price~Age+I(Age^2)+I(Age^3),data=X)
+quarticMod = lm(Price~Age+I(Age^2)+I(Age^3)+I(Age^4),data=X)
+
+summary(quadMod)
+summary(cubicMod)
+summary(quarticMod)
+
+#The adjusted r-squared of the quadratic model is 0.9314 which is slightly higher than the adjusted r-squared of 0.9309 the cubic model, suggesting that the quadratic model is a better fit. The quartic model's adjusted r-squared is 0.9311, which is higher than the cubic model, but still lower than the quadratic model, suggesting that there is not a significant enough difference for it to be a better model.
+
+#Null hypothesis: The coefficients of the slope of the model terms are zero.
+#Alt hypothesis: At least one coefficient of the slope of the model terms is not zero.
+anova(quadMod,cubicMod)
+anova(quadMod,quarticMod)
+
+#Conclusion: Since the p-value is above 0.05 we cannot reject the null hypothesis.
+```
+MODEL #4: Complete second order model
+
+A) Fit a complete second order model for predicting a used car Price based on Age and Mileage and examine the residuals.
+```{r}
+secMod = lm(Price~Age+Mileage+I(Age^2)+I(Mileage^2)+I(Age*Mileage),data=X)
+summary(secMod)
+
+plot(secMod$residuals~secMod$fitted.values)
+abline(a=0,b=0)
+
+#The residuals look evenly distributed.
+```
+B) Perform a hypothesis test to determine if the model constructed in part A is significant. List your hypotheses, p-value, and conclusion.
+```{r}
+#Null hypothesis: The coefficients of the slope of the model terms are zero.
+#Alt hypothesis: At least one coefficient of the slope of the model terms is not zero.
+anova(secMod)
+#Conclusion: The p-values or the model terms Age, Mileage, and Age squared are less than 0.05, but the ones of mileage squared and the interaction of mileage and age are greater than 0.05 and therefore we cannot reject the null hypothesis.
+```
+
+C) Perform a hypothesis test to determine the importance of just the second order terms (quadratic and interaction) in the model constructed in part A. List your hypotheses, p-value, and conclusion.
+```{r}
+#Null hypothesis: The coefficients of the slope of the model terms are zero.
+#Alt hypothesis: At least one coefficient of the slope of the model terms is not zero.
+secondOrder = lm(Price~I(Age^2)+I(Mileage^2)+I(Age*Mileage),data=X)
+anova(secondOrder,secMod)
+#Conclusion: The p-value of 2.2e-16 is less than 0.05, and therefore we can reject the null hypothesis.
+```
+D) Perform a hypothesis test to determine the importance of just the terms that involve Mileage in the model constructed in part A. List your hypotheses, p-value, and conclusion.
+```{r}
+#Null hypothesis: The coefficients of the slope of the model terms are zero.
+#Alt hypothesis: At least one coefficient of the slope of the model terms is not zero.
+mileageModel = lm(Price~Mileage+I(Mileage^2)+I(Age*Mileage),data=X)
+anova(mileageModel,secMod)
+#Conclusion: The p-value of 2.2e-16 is less than 0.05, and therefore we can reject the null hypothesis.
+```
+MODEL #5: Categorical Predictors
+
+A) Fit a multiple regression model using Age, Mileage, and Model to predict the Price of the car.
+
+```{r}
+toyotaMod1=lm(Price~Age+Mileage+Model,data=toyota)
+```
+
+
+B) Perform a hypothesis test to determine the importance of Model terms in the model constructed in part A. List your hypotheses, p-value, and conclusion.
+```{r}
+#Null hypothesis: The coefficients of the slope of the model terms are zero.
+#Alt hypothesis: At least one coefficient of the slope of the model terms is not zero.
+toyotaMod2=lm(Price~Model,data=toyota)
+anova(toyotaMod2,toyotaMod1)
+#Conclusion: The p-value of 3.131e-15 is less than 0.05, and therefore we can reject the null hypothesis.
+```
+C) Fit a multiple regression model using Age, Mileage, Model, and the interactions between Age and Model,and Mileage and Model to predict the Price of the car.
+```{r}
+toyotaMod2=lm(Price~Age+Mileage+factor(Model)+Age*factor(Model)+Mileage*factor(Model),data=toyota)
+```
+D) Perform a hypothesis test to determine the importance of Model terms in the model constructed in part C. List your hypotheses, p-value, and conclusion.
+```{r}
+#Null hypothesis: The coefficients of the slope of the model terms are zero.
+#Alt hypothesis: At least one coefficient of the slope of the model terms is not zero.
+reduced = lm(Price~Age+Mileage,data=toyota)
+anova(reduced,toyotaMod2)
+#Conclusion: The p-value of 1.485e-09 is less than 0.05, and therefore we can reject the null hypothesis.
+```
+E) Discuss in context the differences between the models constructed in parts A and C and how the assumptions of each model, in context, differs.
+```{r}
+#The p-value from the model from part A of 3.131e-15 is much lower than the p-value from the model in part C of 1.485e-09, showing that leaving out the interactions between Age and Model and Mileage and Model causes a better model. This wouldn't be what I would expect because in the real world I would expect the interactions between Age and Model and Mileage and Model to be significant because a certain model will have better mileage and will have different levels of price differences in age difference. This may be because of the model of the car I chose, as a Toyota is a very commonly used model of a car by a wide range of people.
+```
+

@@ -1,0 +1,216 @@
+Situation (again): Suppose that you are interested in purchasing a used car. How much should you expect to pay? Obviously the price will depend on the type of car you get (the model) and how much it’s been used. For this assignment you will investigate how the price might depend on the age, mileage, and the model of car.
+
+Data Source: Your sample of cars will again be taken from the UsedCar CSV file on Sakai. The data was acquired by scraping TrueCar.com for used car listings on 9/24/2017 and contains more than 1.2 million used cars.
+
+In assignment #2, you chose a car Model for which there are at least 1000 in the dataset, and then created a new dataset containing a random sample of 100 of that Model of car. You then defined a variable called Age which was 2017-year (since the data was scraped in 2017).
+
+For this assignment, you will need to select six new samples of 50 cars for six different Model of used cars from the UsedCar dataset. Each Model should have at least 1000 cars in the dataset. The six models of cars should be selected such that two models of cars are selected from German, Japanese, and US companies. Within each country, you should select a SUV and a car (i.e. not an SUV or truck). You should add new variables to the dataframes for the country of the company and type of vehicle (car vs SUV) and combine these six samples into one dataframe (just as rbind was used in assignment #4)
+
+```{r}
+library(mosaic)
+library(leaps)
+library(readr)
+library(car)
+library(dplyr)
+UsedCars <- read.csv("~/Dropbox/untitled folder/Stor 455/Stor 455/UsedCars.csv")
+set.seed(455)
+
+#USA cars
+edge = sample_n(subset(UsedCars, Model=="EdgeLimited"), 50) #suv
+civic = sample_n(subset(UsedCars, Model=="Civic"), 50)
+edge$Country <- 'US'
+edge$Type <- 'car'
+civic$Country <- 'US'
+civic$Type <- 'SUV'
+
+#Japanese cars
+toyota = sample_n(subset(UsedCars, Model=="Camry"), 50) 
+fourRunner = sample_n(subset(UsedCars, Model=="4RunnerSR5"), 50) #suv
+toyota$Country <- 'Japan'
+toyota$Type <- 'car'
+fourRunner$Country <- 'Japan'
+fourRunner$Type <- 'SUV'
+
+
+#german cars
+bmw = sample_n(subset(UsedCars, Model=="3"), 50)
+volks = sample_n(subset(UsedCars, Model=="Tiguan"), 50,`replace` = TRUE) #suv
+bmw$Country <- 'Germany'
+bmw$Type <- 'car'
+volks$Country <- 'Germany'
+volks$Type <- 'SUV'
+
+X = rbind(edge,civic,toyota,fourRunner,bmw,volks)
+```
+One Way ANOVA
+
+1. Produce a set of side-by-side boxplots to compare the price distributions of your six models of cars. Comment on any obvious differences in the distributions.
+```{r}
+#boxplot(X$Price~X$Model,data=X)
+```
+2. Produce summary statistics (mean and standard deviation) for each of the groups (car models) AND the entire sample of car prices.
+```{r}
+mean(edge$Price)
+sd(edge$Price)
+
+mean(civic$Price)
+sd(civic$Price)
+
+mean(toyota$Price)
+sd(toyota$Price)
+
+mean(fourRunner$Price)
+sd(fourRunner$Price)
+
+mean(bmw$Price)
+sd(bmw$Price)
+
+mean(volks$Price)
+sd(volks$Price)
+
+mean(X$Price)
+sd(X$Price)
+```
+3. Based on just what you see in the boxplots and summary statistics comment on whether you think there are significant differences in the mean prices among your six car models. Also comment on any concerns you see about the conditions for the ANOVA for means model.
+```{r}
+#All of the mean prices are around 20,000, but there are some that are more disparate such as the toyota model with a mean price of 11,743 and the four runner model with a mean price of 25,702.
+
+#Conditions:
+#Zero mean - yes
+#Constant variance - the standard deviations are very spread out with some being around 2000 and some being around 9000 which is much more than twice 2000 which is a concern for this model
+#Normality - the histogram looks good and doesn't look skewed
+amod = aov(Price~Model,data=X)
+hist(amod$residuals)
+#Independence - yes
+```
+4. Construct an ANOVA model for the mean price by car model. Include the output showing the ANOVA table; state hypotheses and provide a conclusion in the context of your data.
+```{r}
+amod = aov(Price~Model,data=X)
+summary(amod)
+#tapply(X$Price,X$Model,mean)
+
+#Null Hypothesis: The mean values are equal to each other
+#Alt Hypothesis: There exists a mean value that is not equal to another mean value
+
+#The p-value of 2e-16 is very small and therefore we can reject the null hypothesis and conclude that there is a significant difference among the means.
+```
+5. Produce plots and/or summary statistics and comment on the appropriateness of the following conditions for your data: normality of the residuals, and equality of the variances
+```{r}
+hist(amod$residuals)
+plot(amod$residuals~amod$fitted.values)
+
+#The residuals look normal as the histogram of the residuals do not appear skewed.
+
+#There does not appear to be equal variance as the standard deviations are very spread out and in the plot of the residuals vs. fitted values the points appear to be very spread out
+```
+6. If your ANOVA model indicates there are significant differences among the car price means, discuss where the significant differences occur using Tukey HSD methods. If your ANOVA indicates there are not significant differences among the car price means, determine how different your means prices would need to be in order to find a significant difference using the Tukey HSD methods.
+```{r}
+origpar=par()          
+par(mar=c(4,7,3,1))    
+hsd=TukeyHSD(amod)
+hsd
+plot(hsd,las=2)        
+par(origpar) 
+
+#The plot of the Tukey HSD method clearly shows how all of the differences in mean levels for each car model are in very different places.
+```
+Two Way ANOVA
+
+7. Construct an ANOVA model for the mean price using the country of the company and the type of vehicle as predictors (without an interaction). Include the output showing the ANOVA table; state hypotheses and provide a conclusion in the context of your data. If your ANOVA model indicates there are significant differences among the car price means: Discuss where the significant differences occur using Tukey HSD methods.
+```{r}
+amod2 = aov(Price~Country+Type,data=X)
+#tapply(X$Price,X$Model,mean)
+summary(amod2)
+#Null Hypothesis: The car price mean values are equal to each other
+#Alt Hypothesis: There exists a car price mean value that is not equal to another mean value
+
+#The p-values of 0.000718 and 0.033129 are very small and therefore we can reject the null hypothesis and conclude that there is a significant difference among the means.
+
+origpar=par()          
+par(mar=c(4,7,3,1))    
+hsd=TukeyHSD(amod)
+hsd
+plot(hsd,las=2)        
+par(origpar) 
+
+#The plot of the Tukey HSD method clearly shows how all of the differences in mean levels for each car model are in very different places.
+```
+8. Produce plots and/or summary statistics to comment on the appropriateness of the following conditions for your data: normality of the residuals, and equality of the variances.
+```{r}
+hist(amod2$residuals)
+plot(amod2$residuals~amod2$fitted.values)
+
+#The residuals look normal as the histogram of the residuals do not appear skewed.
+
+#There does not appear to be equal variance as the standard deviations are very spread out and in the plot of the residuals vs. fitted values the points appear to be very spread out
+```
+9. Construct an ANOVA model for the mean price using the country of the company and the type of vehicle as predictors with the interaction. Include the output showing the ANOVA table; state hypotheses and provide a conclusion in the context of your data. If your ANOVA indicates there are significant differences among the car price means: Discuss where the significant differences occur using Tukey HSD methods.
+```{r}
+amod3 = aov(Price~Country+Type+(Country*Type),data=X)
+summary(amod3)
+
+#Null Hypothesis: The car price mean values are equal to each other
+#Alt Hypothesis: There exists a car price mean value that is not equal to another mean value
+
+#The p-values of 0.000718 and 0.033129 are very small and therefore we can reject the null hypothesis and conclude that there is a significant difference among the means.
+origpar=par()          
+par(mar=c(4,7,3,1))    
+hsd=TukeyHSD(amod3)
+hsd
+plot(hsd,las=2)        
+par(origpar) 
+
+#The plot of the Tukey HSD method clearly shows how all of the differences in mean levels for each car model are in very different places.
+```
+10. Produce two interaction plots for the previous model. If you found significant interactions in your hypothesis test, comment on how these interactions are shown in the plot.
+Additional Topics
+```{r}
+interaction.plot(X$Country,X$Type,X$Price)
+interaction.plot(X$Type,X$Country,X$Price)
+
+#It seems that for the car type the car and SUV interact in opposite manners in terms of their mean price but for country the german and american vehicles seem to interact together.
+```
+11. Recall that we can also handle a categorical predictor with multiple categories (like your six car models) using ordinary multiple regression if we create indicator variables for each category and include all but one of the indicators in the model. Run an ordinary multiple regression to predict Price using the Model variable. Since Model has text values, R will automatically create the required indicator variables (i.e. treat it as a factor) and leave one out when fitting the model. Interpret each of the coefficients in the “dummy” regression by what they mean in the context of prices (or mean prices) of the different car models.
+```{r}
+mod1 = aov(Price~Model+Country+Type,data=X)
+summary(mod1)
+
+German = (X$Country == "Germany")*1
+American = (X$Country == "US")*1
+mod2 = lm(Price~Model+German+American,data=X)
+summary(mod2)
+anova(mod2)
+
+SUV = (X$Type == "SUV")*1
+mod3 = lm(Price~Model+German+American+SUV,data=X)
+summary(mod3)
+anova(mod3)
+
+mod4 = lm(Price~Model+Country+Type,data=X)
+summary(mod4)
+anova(mod4)
+
+#Including interactions
+mod5=lm(Price~Model+German+American+SUV+I(German*SUV)+I(American*SUV),data=X)
+summary(mod5)
+anova(mod4)
+
+#The models of Fourrunner, Camry, Civic, EdgeLimited, and Tiguan have different mean prices from each other and therefore we can reject the null hypothesis that the models have the same mean prices.
+```
+12. One possible drawback of the analysis for this assignment is that different people might have chosen cars with quite different ages (or mileages) when collecting their samples. Thus an apparent “difference” between two car models might be due to one sample having considerably more older cars in it than another. Construct a model that allows you to check for price differences between your car models after accounting for variability that might be due to the mileage of the cars. Explain how you use the output from the model to address this question
+```{r}
+newX = subset(X,X$Mileage<100000)
+View(newX)
+
+newMod = aov(Price~factor(Mileage),data=newX)
+summary(newMod)
+anova(newMod)
+
+newMod2 = lm(Price~Model+factor(Mileage),data=newX)
+anova(newMod2)
+
+plot(newMod$residuals~newMod$fitted.values)
+
+#Since the p-value of 2.2e-16 is still much less than 0.05, we can reject the null hypothesis of the mean price values being the same even with the reducement of mileage variability.
+```
+

@@ -1,0 +1,52 @@
+---
+title: "Anova for Simple Linear Regression"
+output:
+  html_document:
+    df_print: paged
+---
+Team: 
+Via Zhang
+Sidharth Kulgod
+Valeria Ricaurte
+
+Exercise 2.25
+
+```{r message = FALSE, warning= FALSE}
+library(Stat2Data)
+library(readr)
+library (mosaic)
+library(Stat2Data)
+library(dplyr)
+library(car)
+
+data("Sparrows")
+head(Sparrows)
+```
+```{r}
+model1 = lm(Weight~WingLength, data= Sparrows)
+summary(model1)
+```
+```{r}
+plot(model1)
+```
+```{r}
+anova(model1)
+```
+Anova Test. The Null hypothesis is that B1 = 0, the alternative hypothesis is the B1 is not equal 0. 
+Given that the p-value 2.2e-16 is significant, we can reject the null hypothesis.
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

@@ -1,0 +1,241 @@
+---
+title: "Homework 2"
+output: html_notebook
+---
+
+```{r}
+library(mosaic)
+library(leaps)
+library(readr)
+library(car)
+
+UsedCars <- read_csv("~/Dropbox/untitled folder/Stor 455/Homework 2/UsedCars.csv")
+View(UsedCars)
+
+
+
+Cars=as.data.frame(table(UsedCars$Model))
+Cars
+Cars2=subset(Cars, Freq>=1000)
+Cars2
+
+set.seed(1938675)
+X=sample_n(subset(UsedCars, Model == "Continental"),100)
+
+head(X,100)
+
+#Check for variability
+plot(Mileage~Year, data=X)
+
+#create age
+a=2017
+
+X$Age <- (a-X$Year)
+head(X,100)
+```
+MODEL #1
+
+1. Least squares regression line equation: y = -12446x + 178360
+```{r}
+lm(formula=Price~Age,data=X)
+```
+The slope estimate of -12446 tells me that as the age of the car increases by one year, the price of the car decreases by the value of the slope estimate. The negative slope value because car values depreciate over time.
+
+2. Plot the LSR line on a scatterplot
+```{r}
+mod1=lm(Price~Age, data=X)
+plot(Price~Age, data=X)
+abline(mod1)
+summary(mod1)
+```
+3. Residual Plots
+
+CONDITIONS
+
+Linearity: According to the scatter plot above, there are no consistent patterns or curvature. According to the residuals vs predictions plot below, there seems to be a slight curve in the points, with more points being below the line than above.
+
+Zero mean: The distribution of errors is centered at zeroes in the residual plot.
+
+Constant variance: From the scatter plot above with the LSR line, there appears to be constant variance.
+
+Independence: There seem to be outliers in the histogram of the residuals below, showing that the residuals are normal. To further verify this, we can take a look at the normal quantile plot. Most of the points seem to be on the line except for one outlier, showing some normality.
+
+Normality: The below code verifies normality for the dataset.
+```{r}
+#Residual plot of residuals vs. predictions:
+mod1=lm(Price~Age, data=X)
+plot(mod1$residuals~mod1$fitted.values)
+abline(a=0,b=0)
+
+#Histogram of residuals:
+hist(mod1$residuals)
+
+#Normal quantile plot:
+qqnorm(mod1$residuals)
+qqline(mod1$residuals)
+
+#Check for normality:
+set.seed(455002)
+x=sort(rnorm(99,0,1))
+y=c(1:99)
+normy=qnorm(y/100)
+plot(x~normy)
+abline(0,1)
+```
+4. Car with largest residual
+```{r}
+largestResidual = max(mod1$residuals)
+model = lm(Price~Age,data=X)
+
+abs(rstandard(model)[which.max(mod1$residuals)])
+abs(rstudent(model)[which.max(mod1$residuals)])
+```
+Both the standard and student residuals values are influential because both are greater than 3, which shows that the residuals are too large for the model to be a good representation of it.
+
+5. Leverage
+```{r}
+#Leverage:
+2*(2/100)
+3*(2/100)
+
+Xlm=lm(Price~Age, data=X)
+X$Leverage=hatvalues(Xlm)
+X[which.max(mod1$residuals),"Leverage"]
+```
+6. 90% confidence interval
+
+We are 90% confident that the true slope of the model (age as a predictor for price) is between -11762.5 and -11157.84. For every one year increase in age, we are 90% confident that price decreases anywhere between -$11762.5 and -$11157.84.
+```{r}
+mod1=lm(Price~Age, data=X)
+summary(mod1)
+confint(mod1, x=0.90)
+```
+7. Test for correlation
+
+Since the p-value is less than 0.05, we can reject the null hypothesis of zero correlation between price and age.
+```{r}
+cor.test(X$Price,X$Age)
+```
+Test for slope
+
+Since my p-value of approximately 6.5 x 10^(-147) is very close to zero, we can reject the null hypothesis.
+```{r}
+pt(-30.75,998)
+```
+ANOVA for regression
+
+Since the p-value is less than 0.05, we can reject the null hypothesis using the ANOVA test for regression.
+```{r}
+moddist=lm(Price~Age, data=X)
+anova(moddist)
+```
+8. 90% confidence interval and 90% prediction interval
+
+We can be 90% confident that a car of this model that is 3 years old has a mean price within the interval (137499.6,144544.7).
+
+We can also predict that a car of this model that is 3 years old is chosen,it will have a mean price within the interval (118881.2,163163.1)
+```{r}
+newx=data.frame(Age=3)
+
+predict.lm(mod1, newx, interval="confidence", level=0.90)
+predict.lm(mod1, newx, interval="prediction", level =0.90)
+```
+9. The free car phenomenom occurs when a car reaches a certain age that causes the car to lose its monetary value. According to my model, this occurs when the car is at age 14.3307087. I discovered this by setting my original linear equation from problem 1, y = -12446x + 178360, to 0 and solving for x. The original scatterplot shows that prices get closer to 0 as the age of the cars become greater than 10, and we can therefore predict that the age will continue to increase until it reaches the value of 14.3307087. The data after this value are most likely outliers and should therefore not be included in the model.
+```{r}
+#set -12446x + 178360 = 0 in order to solve for x and get the age that occurs when the car's price is 0.
+```
+10. Experimenting with transformations
+
+I tried three different transformations on the data to attempt to find a better fit. For the first transformation, mod2, I took the logarithm of the price values. For the second transformation, mod3, I took the logarithm of the age values. For the third transformation, mod4, I took the logarithm of both the price and the age values. The first tranformation seemed to be the best fit out of all three transformations, which makes sense considering there is a greater range in data of the price compared to the age data, so taking the logarithm of the values will cause the range of the data to decrease, as the data will get closer together.
+```{r}
+plot(log(Price)~(Age), data = X)
+mod2 = lm(log(Price)~(Age), data = X)
+abline(mod2)
+summary(mod2)
+
+plot((Price)~log(Age), data = X)
+mod3 = lm((Price)~log(Age), data = X)
+abline(mod3)
+summary(mod3)
+
+plot(log(Price)~log(Age), data = X)
+mod4 = lm(log(Price)~log(Age), data = X)
+abline(mod4)
+summary(mod4)
+```
+In order to determine if the first transformation is a better fit than the original plot I created in problem 2, I will look at the plot of the residuals vs the predicted values, as well as the normal quantile plot.
+```{r}
+plot(mod2$residuals~mod1$fitted.values)
+abline(0,0)
+
+qqnorm(mod2$residuals)
+qqline(mod2$residuals)
+```
+The residuals vs predicted values plot seems to show more randomization in the data and less of a pattern as compared to the residuals vs predicted values plot from problem 2 above. Similarly, the normal quantile plot seems to show values close to the line, as this normal quantile plot doesn't have the outlier that the first normal quantile plot had from problem 2. Therefore, I believe that my first transformation is the best fit for the data out of all of the transformations I attempted.
+
+MODEL 2
+
+1. Two predictors age and mileage for price as the response variable
+```{r}
+model1=lm(Price~Age+Mileage,data=X)
+summary(model1)
+anova(model1)
+```
+2. Largest residual
+```{r}
+max(abs(model1$residuals))
+which.max(abs(model1$residuals))
+```
+3. Importance of the predictors in the models
+```{r}
+#Age
+#Null hypothesis: slope = 0
+#Alternative hypothesis dne 0
+
+model1=lm(Price~Age+Mileage,data=X)
+summary(model1)
+
+cor.test(X$Price,X$Age)
+#Since the p-value of 2.23^-16 is less than 0.05, we can reject the null hypothesis that the slope is equal to zero and we can conclude that true correlation is not equal to 0 between price and age.
+
+cor.test(X$Price,X$Mileage)
+
+cor(X[c(2,4,10)])
+#This shows a possible negative correlation between price and age and a possible correlation between price and mileage.
+```
+4. Formal test
+
+Null hypothesis: There is no relationship between price and mileage or price and age; the slope = 0
+```{r}
+anova(model1)
+```
+Since the p-value is less than 0.05, we can reject the null hypothesis and conclude that there is a relationship between price and mileage or price and age.
+
+5. VIF
+```{r}
+vif(model1)
+```
+Since the VIF is less than 5 there is most likely not a strong correlation between age and mileage. This makes sense as mileage depends largely on the driver of the car, so there may be a lot of variation.
+
+6. 90% confidence interval and prediction interval
+```{r}
+newx = data.frame(Age = 3, Mileage = 31000)
+
+predict.lm(model1,newx,interval = "confidence")
+#We are 90% confident the true mean price of a car at age 3 and with a mileage of 31,000 lies in the interval (129498.2,139207.9)
+
+predict.lm(model1,newx,interval = "prediction")
+#We are 90% confident that the price will be between (109960.9,158745.1) when a car of age 3 and mileage 31,000 is chosen
+```
+
+7. Compare the intervals constructed in Model 1.8 and 2.6
+
+Intervals from Model 1.8:
+Confidence -> (137499.6,144544.7) 
+Prediction -> (118881.2,163163.1) 
+
+Intervals from Model 2.6:
+Confidence -> (129498.2,139207.9) 
+Prediction -> (109960.9,158745.1) 
+
+A similarity between the intervals from both models, is that for both models the prediction interval is much larger than the confidence interval, which is because prediction intervals must account for both the uncertainty in knowing the value as well as data scatter. A difference between the intervals, is the intervals from model 2.6 seems to contain numbers lower than those from 1.8, which may mean that when the additional parameter of a mileage of 31,000 was added, the price of the vehicles went down. Another difference between the intervals is the intervals from model 2.6 also are slightly larger than the intervals from model 1.8, which suggests greater variance when the parameter of a mileage of 31,000 was added.

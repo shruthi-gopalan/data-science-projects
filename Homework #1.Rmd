@@ -1,0 +1,95 @@
+STOR 455 Homework #1
+
+High Peaks
+```{r}
+library(readr)
+library(mosaic)
+library(Stat2Data)
+data(HighPeaks)
+data(Perch)
+data(SpeciesArea)
+```
+A) Least Squares Line: y = 0.6843x + 2.0482
+```{r}
+lm(formula=Time~Length, data=HighPeaks)
+View(HighPeaks)
+```
+B) Scatterplot
+```{r}
+mod1=lm(Time~Length, data=HighPeaks)
+plot(Time~Length, data=HighPeaks)
+abline(mod1)
+```
+C) Time and residual model predicted for climbing Panther Peak
+Time: 14.12788
+Residual: -0.591394241
+```{r}
+mod1$residuals
+2.0842+(0.6843)*(17.6)
+```
+D) Largest positive residual: 4.003444 Seward
+```{r}
+max(mod1$residuals)
+```
+
+E) Most negative residual: -2.449137 Mt. Colden
+```{r}
+min(mod1$residuals)
+```
+F) Conditions
+```{r}
+plot(mod1$residuals~mod1$fitted.values)
+abline(a=0,b=0)
+```
+Linearity - yes, the data seems to be following a linear pattern
+Zero Mean - yes, the errors are centered at zero
+```{r}
+mod1=lm(Time~Length, data=HighPeaks)
+plot(Time~Length, data=HighPeaks)
+abline(mod1)
+```
+Constant Variance - no, there seems to be more points toward the middle and right
+```{r}
+hist(mod1$residuals)
+```
+```{r}
+qqnorm(mod1$residuals)
+qqline(mod1$residuals) 
+```
+Independence - The histogram looks good, as it is slightly skewed and the Q-Q plot also looks good as most of the points are on or are close to the line.
+
+Perch
+A)Linear model
+y = 3.163x-5.079
+```{r}
+mod1=lm(Length~Weight, data=Perch)
+plot(Length~Weight, data=Perch)
+abline(mod1)
+```
+B)
+```{r}
+plot(log(Length)~log(Weight), data=Perch)
+betterModel = lm(log(Length)~log(Weight), data=Perch)
+abline(betterModel)
+summary(betterModel)
+```
+C) Checking linearity/conditions
+```{r}
+plot(betterModel$residuals~betterModel$fitted.values)
+abline(a=0,b=0)
+```
+There are many more points to the right of the residual plot.
+```{r}
+hist(betterModel$residuals)
+```
+This histogram of the residuals appears to be skewed to the left.
+```{r}
+qqnorm(betterModel$residuals)
+qqline(betterModel$residuals) 
+lm(formula= log(Weight)~log(Length), data=Perch)
+```
+The Q-Q plot looks good as most of the points are close to the line.
+
+D)
+Length = 19 cm
+Weight = 55.018

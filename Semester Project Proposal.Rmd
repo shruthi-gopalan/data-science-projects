@@ -1,0 +1,95 @@
+# Proposal
+
+## Dataset Options:
+
+### Iowa
+
+Iowa Caucus Data
+
+Indicates for every precinct: for every candidate, how many people were supporting in the first & final alignment, and how many delegates were awarded
+
+Source: Iowa Democratic Party https://results.thecaucuses.org/
+
+Iowa Delegate Apportionment Spreadsheet
+For every precinct, how many delegates are they apportioned
+Source: Iowa Democratic Party
+
+Recanvass Details: https://docs.google.com/spreadsheets/d/1pTGUMcc9CytUqKoHMM1b71vd2G9k4FRUIVgO45uyxXE/edit#gid=1673543809
+
+Recount Details: https://docs.google.com/spreadsheets/d/1Qk-JnRq-XPcIjXHIegRUgnnTWP8Lqw7QTicXHIjWeuc/edit#gid=1673543809
+
+Polling: https://projects.fivethirtyeight.com/polls/president-primary-d/iowa/
+
+Census data: https://www.census.gov/quickfacts/IA, https://www.census.gov/programs-surveys/saipe.html
+Other county-level indicators
+
+Premature death rate (CDC) https://fred.stlouisfed.org/series/CDC20N2U019153 → https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm#Mortality_Multiple
+
+Income inequality (Census) https://fred.stlouisfed.org/series/2020RATIO019153
+
+Unemployment (BLS) https://fred.stlouisfed.org/series/IAPOLK3URN
+
+Labor Force Participation (BLS) https://fred.stlouisfed.org/series/IAPOLK3LFN
+
+### Nevada
+
+Nevada Caucus Data: https://nevadacaucusresults.com/ (backend: https://nevadacaucusresults.com/results/nv_caucus_precinct_results.json)
+
+Nevada Delegate Apportionment Spreadsheet: https://nvdems.com/wp-content/uploads/2020/01/NSDP-Precinct-Delegate-Allocation-Final-precinct_apportionment_full_20200105.pdf
+
+Polling: https://projects.fivethirtyeight.com/polls/president-primary-d/nevada/
+
+
+## Motivation: 
+
+Enumerate the errors present in the data and explore how they affected the outcome of the Caucus.
+
+## Proposed Question Ideas:
+
+What type of errors are present in the caucus results?
+
+What is the frequency of errors? What is the average number of errors in each precinct as a proportion of precincts with errors? 
+
+In which counties do these errors pop up the most? What percent of voters attended a precinct with errors?
+
+Which candidate(s) did the errors tend to help/hurt?
+
+How do the errors of the Iowa Caucus data compare to the errors of the Nevada Caucus data?
+
+Who should be crowned the winner in each of the caucuses (After errors have been resolved)?
+
+Using poll data leading up to the caucuses, can we simulate expected results? Compare this to the actual results and the corrected results. 
+
+Using county-level demographic data (e.g., race, income, age), can we uncover correlations with voters’ first preference choices?
+
+Using first and second round caucus data, can we uncover trends in which candidates tend to merge together to reach viability, and which already-viable candidates do supporters of nonviable candidates reallocate towards? Are there any trends in candidate support and propensity to leave the caucus rather than realign? 
+
+## Methods & Scope:
+
+Compare how the methods were actually carried out in the Caucus against how the methods are supposed to be carried out and identify discrepancies.
+
+Kotlin code that downloads the data and calculates, using the IDP rules, what the delegate counts should be
+
+R script to take error data and compute relevant statistics and visuals
+
+Multivariate regression for demographic analysis
+
+R code for caucus simulation based on poll data
+
+## Brief description of related work 
+
+Iowa Caucus Results Riddled With Errors and Inconsistencies ...www.nytimes.com › 2020/02/06 › upshot › iowa-caucuses-errors-results (Iowa)
+
+NBC News review of Iowa caucus vote finds potential errors ...www.nbcnews.com › politics › 2020-election › nbc-news-review-iow… (Iowa)
+
+https://www.bleedingheartland.com/2020/02/19/three-ways-mark-smith-can-restore-faith-in-the-iowa-democratic-party/ (Iowa)
+
+http://www.uglycauc.us (Nevada)
+
+https://www.nytimes.com/interactive/2020/02/24/us/politics/nevada-democratic-caucus-errors.html (Nevada)
+
+538’s forecast of vote share and delegate conversion via polling aggregation: 
+https://projects.fivethirtyeight.com/2020-primary-forecast/iowa/
+
+
+

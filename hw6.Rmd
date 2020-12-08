@@ -1,0 +1,428 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+## Instructions
+Answer each of the questions given below. Do so in a markdown file with html output.
+
+**Submit only the HTML file.** 
+
+Remember to `knit` often and use the techniques we discussed in class to handle code chunks with errors you cannot fix. Homework submitted in a format other than the html output from your document will not be accepted.
+
+## Scoring
+All questions worth the same amount, **three points.**
+
+## A Secret Santa sampler
+The Secret Santa Christmas tradition is one in which each person is randomly assigned a single other person who they must give a gift. More typical in the U.S. holiday season is that each person gives each other person a gift. Secret Santa therefore is an economical way to enjoy the holiday gift-giving tradition.
+
+There are many [variants of the game](https://en.wikipedia.org/wiki/Secret_Santa), and versions for other occasions.
+
+Various websites will generate Secret Santa matchups for a given list of participants.
+
+**You will create a Secret Santa sampler yourself in this homework!**
+
+### Rules for your program
+
+- Input: Vector of participant names
+- Output: Assignment of gift givers to gift receivers for all participants
+- Rules for assignments:
+  - each participant gives only one gift
+  - each participant receives only one gift
+  - participants cannot give themselves gifts
+
+### Homework structure
+As often is the case, you might see a different, perhaps more efficient, way to create this program. For example, you could create a program that deals with data frames, not lists.
+
+However, I break the task into steps to split up points awarded and to guide those without coding experience. 
+
+The tasks are meant to give students practice with stuff seen recently in class, and with useful tools we did not have time to cover, particularly in the [purrr package](https://purrr.tidyverse.org/reference/index.html).
+
+
+### Program outline
+
+We will use the following terminology
+
+- a **santa** will refer to the person giving the gift
+- a **giftee** will refer to the person receiving the gift
+
+Our program will work as follows
+
+1. Given a vector of participant names, create a list of vectors each of which has two elements, `santa` and `giftee`, representing one `santa, giftee` pair---excluding cases where santa and giftee are the same person
+
+2. Repeat the following until no possible `santa`, `giftee` choices remain, ie. till the output from part b is empty
+  a. select one `santa`, `giftee` at random
+  b. update the list of possible pairs to ensure the `santa` chosen in part a can no longer be chosen as a santa, and `giftee` from part a can no longer be chosen as a giftee
+  c. return the output from parts a and b
+
+### Example of program step 2
+
+Say our list of participants is as follows
+
+```
+c('spike', 'virgil', 'diana', 'little bear')
+```
+
+Then the list of possible pairs would look like this
+
+
+```
+[[1]]
+   santa   giftee 
+ "spike" "virgil" 
+
+[[2]]
+   santa   giftee 
+"virgil"  "diana" 
+
+[[3]]
+        santa        giftee 
+      "diana" "little bear" 
+
+[[4]]
+        santa        giftee 
+     "virgil" "little bear" 
+
+[[5]]
+        santa        giftee 
+"little bear"       "diana" 
+
+[[6]]
+        santa        giftee 
+"little bear"      "virgil" 
+
+[[7]]
+   santa   giftee 
+ "diana" "virgil" 
+
+[[8]]
+        santa        giftee 
+"little bear"       "spike" 
+
+[[9]]
+        santa        giftee 
+      "spike" "little bear" 
+
+[[10]]
+  santa  giftee 
+"spike" "diana" 
+
+[[11]]
+  santa  giftee 
+"diana" "spike" 
+
+[[12]]
+   santa   giftee 
+"virgil"  "spike" 
+```
+
+If in part 2a we select
+
+```
+  santa   giftee 
+"virgil"  "spike" 
+```
+
+then the result from part 2b will look like this
+
+```
+[[1]]
+   santa   giftee 
+ "spike" "virgil" 
+
+[[2]]
+   santa   giftee 
+ "diana" "virgil" 
+
+[[3]]
+        santa        giftee 
+"little bear"      "virgil" 
+
+[[4]]
+  santa  giftee 
+"spike" "diana" 
+
+[[5]]
+        santa        giftee 
+"little bear"       "diana" 
+
+[[6]]
+        santa        giftee 
+      "spike" "little bear" 
+
+[[7]]
+        santa        giftee 
+      "diana" "little bear" 
+```
+
+All cases where `virgil` is santa OR `spike` is giftee have been removed.
+
+
+# Q1
+
+Run the following code to **create a vector of names**, with which we will test pieces of our program.
+
+```{r}
+library(tidyverse)
+names <- c('spike', 'virgil', 'diana', 'little bear')
+```
+
+Use the `cross` or `cross2` [functions in the tidyverse](https://purrr.tidyverse.org/reference/cross.html) to **create a list of all possible pairs**, including illegal ones where santas and giftees are the same. 
+
+**Display the result**
+
+```{r}
+data <- list(santa = names,
+  giftee = names)
+
+allPairs<- data %>%
+  cross() %>%
+  map(.,unlist)
+
+allPairs
+```
+
+### Hints:
+
+- create a list with two elements, `santa = names` and `giftee = names`
+- use `cross` on this list
+- the output from `cross` is not exactly what we want, since it returns a list of lists
+- convert the output of `cross` from a list of lists to a list of vectors by applying `unlist` to each element
+- you will want to use `map` or `lapply` for the previous step
+
+**Your output at this point will include illegal santa giftee pairs**, e.g.
+```
+  santa   giftee 
+"virgil"  "virgil" 
+```
+
+# Q2
+We need to modify your response to Q1 to remove pairs where santa and giftee are the same person.
+
+**We will do this in two different ways** across Q2, 3, 4 for the sake of learning some coding tools.
+
+**Write a function** that takes a single argument, a vector of length two, which will be a single one of the pairs in your list output from Q1.
+
+**Your function should return `TRUE` or `FALSE`** based on whether the first and second values of the input are the same or different, respectively.
+
+For example, if the input is 
+
+  santa   giftee 
+"virgil"  "virgil" 
+
+your function should return `TRUE`.
+
+
+```{r}
+my_function <- function(x){
+  if (x[1] == x[2])
+    TRUE
+  else 
+    FALSE
+}
+allPairs[[1]]
+my_function(allPairs[[1]])
+
+allPairs[[2]]
+my_function(allPairs[[2]])
+```
+
+# Q3
+Remember that `filter` lets us discard unwanted rows of a data frame (or keep the ones we do want). We need something like that, but for lists.
+
+`purrr` has functions to do that, called `keep` and `discard`. See the [help file here](https://purrr.tidyverse.org/reference/keep.html).
+
+`discard` works as follows: For a list object `x` and a function `logical_condition` that returns `TRUE` or `FALSE` for each element of the list,
+discard(x, .p = logical_condition)
+```
+
+returns a list **dropping all elements for which `my_function` gives `TRUE`.**
+
+`logical_condition` can be the name of a function, or an 'anonymous' function like the ones we saw in the strings lectures using the `~`.
+
+#### Dummy example with outside function
+
+```{r}
+dumb_list <- list(a = c(1, 2), b = c(1, 2, 3, 4), d = c(-1, -2, 3))
+
+dumb_f <- function(y){
+  max(y) > 2
+}
+
+
+discard(dumb_list, .p = dumb_f)
+```
+
+## Question instructions
+
+Using `discard` or `keep` and the function you made in Q2, take the output from Q1 and return a list containing removing the cases where the `santa` is the same as the `giftee`.
+
+Save over your result from Q1 and display it.
+
+
+```{r}
+pairs <- discard(allPairs, .p = my_function)
+pairs
+```
+#### Why not use a loop?
+At first thought, the most intuitive way to solve this might be a loop.
+
+Say you write a for loop that does the following
+
+- iterates over the number of elements in the list output from Q1
+- in each element
+  - if `santa` is the same as `giftee`, replace the element with `NULL`. This removes it from the list.
+  - otherwise, do not change anything
+
+This would look like this, if the output from Q1 is called `xmas`
+
+```{r,eval = FALSE}
+for (i in 1:length(allPairs))
+  if(allPairs[[i]][1]==allPairs[[i]][2])
+    allPairs[[i]] <- NULL
+```
+
+But you are changing the length of the `xmas` list as you remove items! So when your iterator gets to index 16, the last index, your list will no longer have a 16th index because one has been removed. 
+
+Try it and see. But don't forget to re-generate your output from Q1 before answering Q2, else the loop above will mess it up.
+
+# Q4
+**Repeat Q3** but instead of using an outside function in your `keep`/`discard` statement, use an anonymous function.
+
+In other words, 
+
+- **Rerun** the code from Q1
+- **Using `discard` or `keep` and an anonymous function**, take the output from Q1 and return a list containing removing the cases where the `santa` is the same as the `giftee`. 
+- **Save** over your result from Q1 and display it.
+
+```{r}
+pairs <- discard(allPairs, .p = function(x){
+  if (x[1] == x[2])
+    TRUE
+  else 
+    FALSE})
+pairs
+```
+
+
+#### Dummy example of `discard` with anonymous function
+
+```{r}
+dumb_list <- list(a = c(1, 2), b = c(1, 2, 3, 4), d = c(-1, -2, 3))
+```
+
+**This doesn't work**
+```{r, eval =F}
+discard(dumb_list, .p = max > 2)
+```
+
+Here, use `.x` for an arbitrary element of your list `dumb_list`. The `~` tells it you are giving it an anonymous function.
+```{r}
+discard(dumb_list, .p = ~ max(.x) > 2)
+```
+
+#### Another version
+
+You could also define the function within `discard` itself.
+
+```{r}
+discard(dumb_list, .p = function(x){
+  max(x) > 2
+})
+```
+# Q5 + 6
+This is a double question since it might take more time.
+
+**Write a function called `elf`** that does the following
+
+i) takes as input a list with the same structure as the one output in Q3 or Q4
+ii) randomly selects one element of the list, saving it as `choice`
+iii) removes all elements of the input for which `santa` is the same as the one in `choice` OR `giftee` is the same as the one for `choice`
+iv) returns a list with two names elements:
+  - `choice` giving the chosen pair, result from step ii
+  - `rest` giving the result of step iii
+  
+```{r}
+elf <- function(x){
+  choice <- sample(x,1)
+  rest <- discard(x, .p = function(x){
+  if (x[1] == choice[[1]][1]){
+    TRUE}
+  else if (x[2] == choice[[1]][2]){
+    TRUE}
+  else
+    FALSE})
+  output <- list("choice" = choice,"rest" = rest)
+  return(output)}
+
+elf(pairs)
+```
+
+
+#### Hints
+`sample` works on lists as well as vectors. It will randomly select an entire element of the list. 
+
+For example
+```{r}
+sample(list(c(1, 2), c("b", "a")), 1)
+```
+**Notice the output is a list itself**, of length one.
+
+For part iii), use `discard` or `keep` again with an appropriate argument for `.p`.
+
+
+# Q7 + 8
+**Write a for loop** that does the following
+
+- runs one iteration of your `elf` function using the `rest` part of the output of `elf` from the *previous* iteration and saves the entire output of `elf` for future use
+
+**Show the output,** which will be a list in which each element is also a list with two elements, `choice` and `rest` as output by the `elf` function.
+
+```{r}
+output <- vector("list",length = 4)
+output[[1]] <- elf(pairs)
+nextpick <- output[[1]][[2]]
+names(output) <- c("Pick 1","Pick 2","Pick 3","Pick 4")
+
+for (i in 2:4){
+  output[[i]] <- elf(nextpick)
+  nextpick <- output[[i]][[2]]
+}
+
+output
+```
+
+#### Hint
+The instruction might be a little unclear. I will write a dummy loop that does something analogous but for a different situation.
+
+Say I have a vector `x = c(1, 2, 3, 4)` and I want to get the cumulative sum using a loop. (For real, though, don't do it this way. There is a function for that. This is just for demonstration).
+
+I could do it this way
+
+```{r}
+x <- 1:4
+out <- vector('numeric', length(x))
+
+out <- x[1]
+
+for (i in 2:length(x))
+  out[i] <- x[i] + out[i-1]
+
+out
+```
+
+
+# Q9
+**Extract just the `choices` from the output from the previous question.** Display the result.
+
+**This is your secret santa list of pairings!**
+
+Do this any way you like: a loop or `map` with an anonymous function will work here.
+
+```{r}
+for (i in 1:4){
+  print(output[[i]]$choice)}
+```

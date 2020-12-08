@@ -1,0 +1,148 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+
+## Instructions
+Answer each of the questions given below. Do so in a markdown file with html output.
+
+**Submit only the HTML file.** 
+
+Remember to `knit` often and use the techniques we discussed in class to handle code chunks with errors you cannot fix. Homework submitted in a format other than the html output from your document will not be accepted.
+
+## Dataset
+We will continue exploring the Federal Reserve's Financial Accounts of the U.S. dataset, first seen in class.
+
+See this helpful [description of the flow of funds statements](https://www.federalreserve.gov/pubs/bulletin/2001/0701lead.pdf) (former title for this dataset). This is for background information only, e.g. on what constitutes a 'level' vs. a 'transaction.'
+
+In particular, we will investigate consumer credit in the U.S. as given in this dataset. The **explosion in American consumer credit** is one of the major socioeconomic trends of the late 20th and early 21st centuries, and we get a little glimpse into this phenomenon here.
+
+## Scoring
+All questions worth the same amount, as with HW 1.
+
+
+# Q1
+Load the following two datasets
+
+- Consumer Credit Transactions: https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/f222.csv
+- Consumer Credit Levels: https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/l222.csv
+
+Transactions record net value 'changing hands.' Levels record the total amount. 
+
+For example: Say I owe you 10 dollars. In 2020 Q1 I pay back 3. Then the transaction amount is 3 dollars, and the level is 7.
+
+```{r}
+transactionData <- read.csv("https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/f222.csv")
+
+levelsData <- read.csv("https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/l222.csv")
+```
+
+
+# Q2 
+The column names are ugly. Worse, they have different names for the same categories.
+
+For example, both FA153166000 and FL153166000 refer to "Households and nonprofit organizations; consumer credit; liability", the former giving transactions and the latter levels.
+
+- Using the following links for reference on names, change the column names in each of the datasets to something short and useful. See the class example for guidance.
+
+- Remove the duplicate column for "Households and nonprofit organizations; consumer credit; liability" in each dataset.
+
+**Your column names should match in both datasets**
+
+Link for [transactions data](https://www.federalreserve.gov/releases/z1/20191212/html/f222.htm)
+Link for [levels data](https://www.federalreserve.gov/releases/z1/20191212/html/l222.htm)
+
+```{r}
+transactionData$FA153166000.Q.1 <- NULL
+colnames(transactionData) <- c("date","householdConsumer", "nonprofit", "nonFinancialCorp", "nonFinancialNonCorp","federal", "charter", "creditUnion","govSponsoredEnterprises", "assetBackedIssuers", "finance", "householdConsumerRev","householdAuto","householdConsumerCredit","householdNonRev")
+
+levelsData$FL153166000.Q.1 <- NULL
+colnames(levelsData) <- c("date","householdConsumer", "nonprofit", "nonFinancialCorp", "nonFinancialNonCorp","federal", "charter", "creditUnion","govSponsoredEnterprises", "assetBackedIssuers", "finance", "householdConsumerRev","householdAuto","householdConsumerCredit","householdNonRev")
+
+```
+# Q3
+This data is untidy: Column names are actually values of a categorical variable.
+
+- Use a pivot function to correct the problem, as we did in class.
+```{r}
+trans <- select(transactionData,"householdConsumer", "nonprofit", "nonFinancialCorp", "nonFinancialNonCorp","federal", "charter", "creditUnion","govSponsoredEnterprises", "assetBackedIssuers", "finance", "householdConsumerRev","householdAuto","householdConsumerCredit","householdNonRev")%>%
+  pivot_longer(everything(), names_to = "series", values_to = "transaction")
+
+trans$date <- transactionData$date
+
+levels <- select(levelsData,"householdConsumer", "nonprofit", "nonFinancialCorp", "nonFinancialNonCorp","federal", "charter", "creditUnion","govSponsoredEnterprises", "assetBackedIssuers", "finance", "householdConsumerRev","householdAuto","householdConsumerCredit","householdNonRev")%>%
+  pivot_longer(everything(), names_to = "series", values_to = "level")
+
+levels$date <- levelsData$date
+```
+
+- Do this for each dataset
+- Call your new categorical variable `series`
+- In the transactions dataset, call your new values variable `transaction`
+- In the levels dataset, call the new values variable `level`
+
+**See the class example for reference.**
+
+# Q4
+We want to join these two datasets, so we can analyze levels and transactions together.
+
+State which variable or variables can serve as key(s) for joining.
+
+There are multiple primary keys. We can use date and series as the keys for joining.
+
+# Q5 
+Join the two datasets using an appropriate join function and key, saving it as a new data frame.
+
+Show your result by displaying the first few rows.
+```{r}
+data <- left_join(trans,levels,by = c("series","date"))
+data%>%
+  head
+
+```
+
+
+# Q6
+Our dataset still is untidy: `date` includes two types of values.
+
+Separate the `date` variable into two columns: `year` and `quarter`.
+
+Be sure to use the `convert = TRUE` option.
+
+```{r}
+split <- str_split(data$date,":",simplify = TRUE)
+data$year <- split[,1]
+data$quarter <- split[,2]
+data$date <- NULL
+```
+
+# Q7
+Convert `ND` values to `NA` and convert the `transaction` and `level` variables to numeric type if necessary.
+
+```{r}
+data <- mutate_all(data, ~ ifelse(. == "ND", NA, .)) %>%
+  mutate_at(vars(transaction,level), as.numeric)
+```
+
+# Q8
+Choose four of the `series` categories of interest to you.
+
+- Make two plots to demonstrate some aspect of this dataset you find interesting. The most obvious thing to do is to plot a value by year, for a given quarter. But you should do what you want.
+- Make one table of summary statistics for your chosen categories.
+- Write two sentences describing what the output above shows. Two sentences for the entire Q8, not two per plot and summary.
+
+```{r}
+Q1data <- filter(data, quarter == "Q1")
+
+ggplot(Q1data, aes(x=year,y=level)) + geom_point()
+
+ggplot(Q1data, aes(x=year,y=transaction)) + geom_point()
+
+summary(Q1data)
+```
+
+The plot of the year vs. transaction data in the first quarter has much greater variability as the data ranges from 500-2500, whereas the level data ranges from 1000-2000. However, there were more NA values in the year vs. transaction data, as 128 rows were removes whereas only 120 were removed for the level data. However, for both graphs the data looks to be pretty similar for each year, but there does seem to be more variability in the transaction data. Additionally, the mean value for the level data is higher than the mean value for the transaction data.

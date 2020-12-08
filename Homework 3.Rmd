@@ -1,0 +1,33 @@
+---
+title: "Homework 3"
+output: html_notebook
+---
+```{r}
+library(leaps)
+library(readr)
+
+read_csv("AmesTrain10")
+View(AmesTrain10)
+Ames <- AmesTrain10[c(2:4,7:10,17:19,23:30,32,33,35,36,39:42)]
+```
+
+```{r}
+#Best Subset
+all=regsubsets(Price~., data=Ames,nbest=2, nvmax=26)
+
+source("/Users/zewalker/downloads/ShowSubsets.R")
+ShowSubsets(all)
+
+# Backward
+Full=lm(Price~., data=Ames)
+MSE=(summary(Full)$sigma)^2
+step(Full,scale=MSE)
+
+# Forward
+none=lm(Price~1, data=Ames)
+step(none,scope=list(upper=Full),scale=MSE, direction=“forward”)
+
+# Stepwise
+none=lm(Price~1, data=Ames)
+step(none,scope=list(upper=Full),scale=MSE)
+```

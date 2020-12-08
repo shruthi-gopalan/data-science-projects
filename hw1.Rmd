@@ -1,0 +1,230 @@
+Universities are typically opaque, bureaucratic institutions. Many public schools such as the University of North Carolina system make [data about university employees publically](http://www.newsobserver.com/news/databases/public-salaries/) available. Using this dataset what can we learn about the university?
+
+
+## Instructions
+
+- Submit responses to Sakai
+- **Submit only the html output from your markdown response.** Files that do not *knit* will **not be considered valid.**
+
+If there is a knitting error, and you can't identify the source after substantial effort, change the `eval` option in the problematic chunk to `FALSE` so that you can at least turn in the rest of the assignment. 
+
+Done like so
+```
+{r, eval = FALSE}
+
+```
+
+**But you will not get any credit for that particular response.** All responses must display the output and code requested in order to receive credit.
+
+In addition,
+
+- use the `tidyverse` and `dplyr` functions to answer the following questions
+- submit just the .Rmd file to Sakai
+- pay careful attention to the questions
+- **return** something means just print it out. Similarly for questions **What is ...** just print out the answer
+
+Example
+
+Q: What is the sum of the first 10 positive integers?
+```{r}
+sum(1:10)
+```
+
+- **create** or **save** means save a variable
+
+Create a variable `x` with the sum of the first 10 positive integers.
+```{r}
+x <- sum(1:10)
+```
+
+
+
+# The data
+
+First download the data set from Ryan Thornburg's website (it is also on stor390's github repo). You may want to set `cache=TRUE` for this chunk so you don't have to download the data set every time you run the script.
+```{r setup, message=FALSE, cache=FALSE}
+library(tidyverse)
+# Load the UNC departments data
+data <- read_csv(url("http://ryanthornburg.com/wp-content/uploads/2015/05/UNC_Salares_NandO_2015-05-06.csv"))
+```
+
+Take a first look at the data
+```{r}
+str(data)
+head(data)
+```
+
+## Tips
+
+- Read through the `dplyr` lecture slides to date.
+
+- `fte` means full time employee
+
+
+# Assignment
+
+## Question 0
+The data come from the same source as this [N\&O database](https://www.newsobserver.com/news/databases/public-salaries/article11863496.html), but captured in May 2015.
+
+Based on the information in the link above and on inspection of the dataset using `head`, `str` etc., briefly answer the following questions. If you do not have clear evidence for an answer, say so and justify a guess. If you know nothing at all from the resources above, say 'I don't know'.
+
+You need only use the resources above to answer these questions.
+
+**Q:** Who generates the data in this dataset?
+
+**A:** The UNC system database.
+
+**Q:** Does the dataset include employee pay from *all* sources?
+
+**A:** The dataset does not include employees' bonus, overtime, annual leave, longevity, summer pay, public school employees, state government employees or UNC Hospital employees.
+
+**Q:** Does the `totalsal` variable give salary actually paid to the employee in a given year?
+
+**A:** Yes
+
+**Q:** What does the `employed` variable represent?
+
+**A:** There is not enough evidence from the dataset to determine this for sure but I would guess that the variable represents the number of years the employee has been employed.
+
+## Question 1
+Return a data frame with columns: name, dept, age,totalsal 
+```{r}
+name <- data$name
+dept <- data$dept
+age <- data$age
+totalsal <- data$totalsal
+df <- data.frame(name,dept,age,totalsal)
+head(df)
+```
+
+Return a data frame with columns: statesal, nonstsal,totalsal using one of the `select_helpers` functions
+```{r}
+dfSal <- select(data,contains("sal"))
+head(dfSal)
+```
+
+## Question 2 
+Rename the `fte` column to `fulltime`. Make sure this change is saved (i.e. `data <- ...`).
+```{r}
+data <- rename(data, fulltime = fte)
+head(data)
+```
+
+## Question 3 
+
+What is the mean salary in the Neurosurgery department?
+
+```{r}
+Neuro <- filter(data,dept == "Neurosurgery")
+mean(Neuro$totalsal)
+```
+
+
+Return a data frame with employee's in the Neurosurgery department making more than $500,000.  
+```{r}
+richNeuro <- filter(Neuro,totalsal>500000)
+head(richNeuro)
+```
+
+
+**Q:** Why might these professors be so well paid?
+
+**A:** They have better positions with more responsibility in the Neurosurgery department.
+
+## Question 4 
+What is the total amount that full time Dermatology employees get paid?
+
+```{r}
+derm <- filter(data,dept == "Dermatology", fulltime == 1.00)
+sum(derm$totalsal)
+```
+
+
+## Question 5
+
+Create a data frame called radio_dept whose rows are the employees from the Radiology department. 
+
+- include only the following columns: name, position, age, nonstsal, totalsal. 
+- order the employees by salary
+
+Use pipes `%>%` to make your code readable.
+
+```{r }
+radio_dept <- filter(data,dept == "Radiology") %>%
+  select(name,position,age,nonstsal,totalsal)
+
+arrange(radio_dept,totalsal)%>%
+  head
+```
+## Question 6
+
+Create a data frame called `dept_summary`  whose rows are the departments and  whose columns are: department size, mean department salary, median department salary, and maximum salary (using totalsal for salary). 
+
+```{r }
+dept_summary <- group_by(data, dept) %>% 
+  summarize(size=n(),mean = mean(totalsal),median = quantile(totalsal, .5, na.rm = TRUE), max = max(totalsal, na.rm = TRUE))
+head(dept_summary)
+```
+
+Order the departments by highest mean salary and print the 10 highest paid departments. 
+
+
+```{r }
+highMean <- arrange(dept_summary,desc(mean))%>%
+  select(dept)
+head(highMean,10)
+```
+
+Order the departments by highest median salary and print the 10 highest paid departments. 
+
+```{r }
+highMedian <- arrange(dept_summary,desc(median))%>%
+  select(dept)
+head(highMedian,10)
+```
+
+**Q:** Why do these lists differ? If you were asked for the top 10 best paid departments at UNC which summary would you choose and why?
+
+**A:** These lists may differ do to the amount of variance in the salaries in these departments. Some departments may have a lot of extremely high salaries that may make the mean higher than the medoan. I would choose the summary of the mean salaries as the median value doesn't depend on all the values in the dataset, so when some of the values may be extremely high, the effect on the median is smaller than the effect on the mean.
+
+## Question 7
+How many departments have at least 10 employees?
+```{r }
+filter(dept_summary,size>10)%>%
+  summarize(n=n())
+```
+
+
+## Question 8
+Which department hired the most people in 2010? Hint: you probably have to modify `hiredate`.
+```{r }
+twentyten <- filter(data,hiredate>20100000 & hiredate<20110000)%>%
+  select(dept,hiredate)
+
+deptNum <- group_by(twentyten,dept)%>%
+  summarize(n=n())
+
+descDeptNum <- arrange(deptNum,desc(n))
+head(descDeptNum,1)
+```
+
+## Question 9
+Make a new data frame called `dept_big` that includes only departments with at least 20 employees, and save it as a new object (i.e. `dept_big <- ...`)
+```{r }
+dept_big <- filter(dept_summary,size>20)
+head(dept_big)
+```
+## Question 10
+Repeat the analysis of Q 6 but with `dept_big` instead of the original dataset, and using `dept_summary_big` instead of `dept_summary`. Answer all questions of Q 6 but for `dept_summary_big`, including the short-answer response.
+```{r}
+highMean <- arrange(dept_big,desc(mean))%>%
+  select(dept)
+head(highMean,10)
+
+highMedian <- arrange(dept_big,desc(median))%>%
+  select(dept)
+head(highMedian,10)
+```
+**Q:** Why do these lists differ? If you were asked for the top 10 best paid departments at UNC which summary would you choose and why?
+
+**A:** These lists may differ do to the amount of variance in the salaries in these departments. Some departments may have a lot of extremely high salaries that may make the mean higher than the medoan. I would choose the summary of the mean salaries as the median value doesn't depend on all the values in the dataset, so when some of the values may be extremely high, the effect on the median is smaller than the effect on the mean.

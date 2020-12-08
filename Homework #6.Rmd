@@ -1,0 +1,181 @@
+STOR 455 Homework #6
+
+Find a dataset consisting of a binary response variable having just two categories, several (3 to 6) potential predictors, with a large enough sample size. At least two of the predictors should be quantitative variables - others can be 0/1 indicators or quantitative. Your goal will be to investigate logistic regression models for the binary response. Include a brief introduction describing your data set, source, and variables. You may work alone of this assignment or with a partner of your choosing.
+```{r}
+#This is the BreastCancer dataset from the "mlbench" package. This dataset of 699 observations and 11 columns predicts if a specimen is benign or malignant based on nine other cell features.
+```
+
+Data Preparation: Was your data in a format that you could immediately upload into RStudio and analyze, or was some manipulation of the data needed? If you manipulated the data, explain what you did and how it was done.
+```{r}
+#Had to install "mlbench" package in order to upload this dataset.
+library(mosaic)
+library(leaps)
+library(mlbench)
+logit = function(B0, B1, x)
+{
+  exp(B0+B1*x)/(1+exp(B0+B1*x))
+}
+data(BreastCancer, package="mlbench")
+bc <- BreastCancer[complete.cases(BreastCancer), ]
+#Changed response variable into a factor variable of 1's and 0's. Whenever the Class is malignant, it will be 1 else it will be 0
+bc$Class <- ifelse(bc$Class == "malignant", 1, 0)
+#Changed all variables from factor into integer
+bc$Id<-as.integer(bc$Id) 
+bc$Cl.thickness<-as.integer(bc$Cl.thickness) 
+bc$Cell.size<-as.integer(bc$Cell.size) 
+bc$Cell.shape<-as.integer(bc$Cell.shape) 
+bc$Marg.adhesion<-as.integer(bc$Marg.adhesion) 
+bc$Epith.c.size<-as.integer(bc$Epith.c.size) 
+bc$Bare.nuclei<-as.integer(bc$Bare.nuclei)
+bc$Bl.cromatin<-as.integer(bc$Bl.cromatin) 
+bc$Normal.nucleoli<-as.integer(bc$Normal.nucleoli) 
+bc$Mitoses<-as.integer(bc$Mitoses)
+bc$Class<-as.integer(bc$Class)
+head(bc)
+```
+Single Predictor:
+(a) Choose a single quantitative predictor and construct a logistic regression model.
+```{r}
+bcMod = glm(Class ~ Cell.shape, data = bc, family="binomial")
+summary(bcMod)
+```
+(b) Plot the raw data and the logistic curve on the same axes.
+```{r}
+B0 = summary(bcMod)$coef[1]
+B1 = summary(bcMod)$coef[2]
+
+plot(jitter(Class,amount=0.1)~Cell.shape,data=bc)
+curve(logit(B0,B1,x),add=TRUE, col="red")
+```
+(c) Construct an empirical logit plot and comment on the linearity of the data.
+```{r}
+pi = logit(B0, B1, bc$Cell.shape)
+head(pi)
+
+odds = pi/(1-pi)
+head(odds)
+
+plot(log(odds)~bc$Cell.shape)
+abline(B0,B1)
+```
+(d) Use the summary of your logistic model to perform a hypothesis test to determine if there is significant evidence of a relationship between the response and predictor variable. State your hypotheses and conclusion.
+```{r}
+summary(bcMod)
+
+#H0: The slope of the cell shape is equal to zero
+#Ha: The slope is not equal to zero
+#Conclusion: Because the p value from the summary for the coefficient is less than 0.05, we reject the null hypothesis and conclude that there is evidence of a relationship between the response and predictor variables.
+```
+(e) Construct a confidence interval for the odds ratio and include a sentence interpreting the interval in the context.
+```{r}
+SE_B1=summary(bcMod)$coef[2,2]
+
+exp(B1  -  SE_B1*qnorm(0.975))
+exp(B1  +  SE_B1*qnorm(0.975))
+
+exp(confint.default(bcMod))
+
+# we are 95% confident that the odds for a patient developing breast cancer increases between (3.444, 5.523) as the cell's shape increases.
+```
+(f) Compute the G-statistic and use it to test the effectiveness of your model.
+```{r}
+#calculating difference between deviance for the null(constant) model and the logistic model based on cell shape.
+G = summary(bcMod)$null.deviance - summary(bcMod)$deviance
+
+#compare to a chi square distribution with 1 degree of freedom
+1-pchisq(G,1)
+```
+(g) Repeat (a)-(f) for a second single quantitative predictor.
+```{r}
+bcMod2 = glm(Class ~ Cl.thickness, data = bc, family="binomial")
+summary(bcMod2)
+
+B0 = summary(bcMod2)$coef[1]
+B1 = summary(bcMod2)$coef[2]
+plot(jitter(Class,amount=0.1)~Cl.thickness,data=bc)
+curve(logit(B0,B1,x),add=TRUE, col="red")
+
+emplogitplot1(Class~Cl.thickness, data=bc, ngroups = "all")
+
+#The relationship between class and cell thickness appears to be fairly linear in comparison to that of class and cell shape.
+
+summary(bcMod2)
+#H0: The slope of the cell thickness is equal to zero
+#Ha: The slope is not equal to zero
+#Conclusion: Because the p value from the summary for the coefficient is less than 0.05, we reject the null hypothesis and conclude that there is evidence of a relationship between the response and predictor variables.
+
+B0 = summary(bcMod2)$coef[1]
+B1 = summary(bcMod2)$coef[2]
+
+SE_B1=summary(bcMod2)$coef[2,2]
+
+exp(B1  -  SE_B1*qnorm(0.975))
+exp(B1  +  SE_B1*qnorm(0.975))
+
+exp(confint.default(bcMod2))
+
+# we are 95% confident that the odds for a patient developing breast cancer increases between (2.192, 2.932) as the cell thickness increases.
+
+G2 = summary(bcMod2)$null.deviance - summary(bcMod2)$deviance
+1-pchisq(G2,1)
+
+#Ho: B0 = 0  and cell thickness is not a significant predictor of class
+#Ha: B0 DNE 0, and cell thickness is a significant predictor of class.
+#Because p < 0.05, we reject the null hypothesis and conclude cell thickness is a significant predictor of class, and we have significant evidence that the success of predicting the class depends on the thickness of the cell.
+```
+(h) Compare the effectiveness of your two models to each other.
+```{r}
+summary(bcMod)
+#residual deviance = 267.59
+summary(bcMod2)
+
+#residual deviance = 458.48
+
+#Based off the comparison of residual deviances, the first model seems to be more effective in reducing residual deviance, and therefore predicting the response variable.
+```
+Multiple Logistic Regression:
+(a) Construct a model using at least three predictors (including the two predictors used above in your single predictor models). This does not need to be the “best” model, as was found with various model selection models in ordinary regression.
+```{r}
+bcMM = glm(Class ~ Cell.shape + Cl.thickness + Bare.nuclei, data = bc, family="binomial")
+```
+(b) Compute the G-statistic and use it to test the effectiveness of your model.
+```{r}
+summary(bcMM)
+
+G3 = summary(bcMM)$null.deviance - summary(bcMM)$deviance
+1-pchisq(G3,1)
+
+#Ho: B1 = 0  and 
+#Ha: B1 DNE 0, and 
+#Because p < 0.05, we reject the null hypothesis and conclude the model is significant in predicting the class of a patient. The improvement of adding the terms to the model is statistically significant.
+```
+(c) Test the effectiveness of each predictor in the model.
+```{r}
+summary(bcMM)
+#H0: Bi = 0 
+#Ha: Bi DNE 0
+#Conclusion: Because p<0.05, we can conclude that cell shape is a significant predictor in the model
+
+#H0: Bi = 0 
+#Ha: Bi DNE 0
+#Conclusion: Because p<0.05, we can conclude that cell thickness is a significant predictor in the model
+
+#H0: Bi = 0 
+#Ha: Bi DNE 0
+#Conclusion: Because p<0.05, we can conclude that bare nuclei is a significant predictor in the model
+```
+(d) Test the effectiveness of this model with multiple predictors compared to each of your two models with a single predictor. Are there significant improvements?
+```{r}
+#residual deviance for multiple mod: 140.25
+#residual deviance for bcmod = 267.59
+#residual deviance for bcmod2 = 458.48
+
+#There are significant improvement in the residual deviances of the multiple regression model in comparison to that of both the models with single predictors.
+```
+(e) Use the bestglm function to determine the best model to predict your response with your given set of predictors.
+```{r}
+bc4=bc[,c(1:7)]
+
+x=bestglm(bc4, family=binomial)
+```
+

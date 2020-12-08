@@ -1,0 +1,124 @@
+---
+title: "Analysis 1"
+author: "Christina Chmielewski"
+
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readr)
+library(tidyverse)
+
+salary=read_csv("~/Downloads/Analysis 1/UNC_System_Salaries Search and Report.csv")
+
+
+names(salary) #provides names of variables in the dataset
+head(salary,3)
+
+str(salary, give.attr=F) #examine type of data in these different variables
+
+#change hiredate from a character to a numeric variable in the form yyyymmdd
+salary$hiredate = as.Date(salary$hiredate, format = "%m/%d/%Y")
+salary$hiredate = as.numeric (gsub("-","",salary$hiredate))
+salary=as.tibble(salary)
+
+head(salary,5)
+
+```
+
+
+#Part 1: Reducing the Data to a Smaller Set of Interest
+
+#Q1
+```{r}
+salary2=select(salary, Name, dept, position, hiredate, exempt, totalsal)
+names(salary2)
+```
+
+#Q2
+```{r}
+salary3 = rename (salary2, Department=dept, Job=position, Exempt=exempt, Salary=totalsal)
+names(salary3)
+```
+
+#Q3
+```{r}
+salary4=mutate(salary3, HireYear=(hiredate-hiredate%%10000)/10000)
+str(salary4)
+head(salary4)
+
+```
+
+#Q4
+```{r}
+currentYear=2019
+salary5=mutate(salary4, YrsEmployed= currentYear - HireYear)
+str(salary5)
+
+
+```
+
+#Q5
+```{r}
+#Q5: Now we modify salary5 to create final dataset named salary.final Use the pipe %>% to:
+#Drop the variables hiredate and hireYear; sort observations first by Department then by YrsEmployed
+#Rearrange variables so YrsEmployed and Salary are the first two variables in the dataset w/o removing any other variables
+
+
+salary.final<- salary5 %>%
+  
+  
+  select(YrsEmployed, Salary, Name, Department, Job, Exempt)%>%
+  group_by(Department, YrsEmployed) %>% 
+  select(YrsEmployed, Salary, everything() )
+  
+  
+head(salary.final)
+```
+
+#Part 2: Answering Questions Based on All Data
+```{r}
+#Q6: What is the average salary of employees in the Linguistics Department? (code and sentence to answer)
+
+
+lingSal = salary.final %>%
+  filter(Department == "Linguistics")
+
+avg=mean(lingSal$Salary)
+avg
+head(lingSal,10)
+
+
+```
+The average salary of employees in the Linguistics Department is $79,935.17
+
+
+Q7: 26 employees have worked in Family Medicine for at most 6 years and are exempt from personnel act.
+```{r}
+#Q7: How many employees have worked in Family Medicine for at most 6 years and are exempt from personnel act?
+
+numEmp= filter(salary.final, Department=="Family Medicine", Exempt== "Exempt from Personnel Act", YrsEmployed <= 6)
+head(numEmp,100)
+nrow(numEmp)
+
+```
+
+The median salary of employees is 101408
+```{r}
+#Q8: What is median salary of employees from the Public Policy Department who are profesors, associate professors, or assistant professors? 
+
+
+
+salaries= filter(salary.final, Department == "Public Policy", Job == "Professor"| Job == "Associate Professor"| Job =="Assistant Professor" )
+head(salaries,100)
+median(salaries$Salary)
+```
+
+#Part 3: Answering Questions Based on Summarized Data
+Q9
+```{r}
+
+```
+

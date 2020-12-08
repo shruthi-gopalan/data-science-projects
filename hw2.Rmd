@@ -1,0 +1,181 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+I will explore the data Harvard researchers used to write following article in Scientific Reports, "The Cannabinoid Content of Legal Cannabis in Washington State Varies Systematically Across Testing Facilities and Popular Consumer Products"
+
+### Link to data and related information
+[Harvard cannabis measurement study](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/E8TQSD)
+
+### Abstract
+> The majority of adults in the U.S. now have state-legal access to medical or recreational cannabis products, despite their federal prohibition. Given the wide array of pharmacologically active compounds in these products, it is essential that their biochemical profile is measured and reported to consumers, which requires accurate laboratory testing. However, no universal standards for laboratory testing protocols currently exist, and there is controversy as to whether all reported results are legitimate. To investigate these concerns, we analyzed a publicly available seed-to-sale traceability dataset from Washington state containing measurements of the cannabinoid content of legal cannabis products from state-certified laboratories. Consistent with previous work, we found that commercial Cannabisstrains fall into three broad chemotypes defined by the THC:CBD ratio. Moreover, we documented systematic differences in the cannabinoid content reported by different laboratories, relative stability in cannabinoid levels of commercial flower and concentrates over time, and differences between popular commercial strains. Importantly, interlab differences in cannabinoid reporting persisted even after controlling for plausible confounds. Our results underscore the need for standardized laboratory methodologies in the legal cannabis industry and provide a framework for quantitatively assessing laboratory quality.
+
+### Sources used to create the dataset:
+
+This dataset comes from the Harvard Dataset organization and comprises of Washington's LCB i502 Recreational Cannabis testing data from June 2014 to May 2017 as well as some data from Leafly strain in 2018.
+
+
+```{r}
+data <- read_csv("Replication_Data.csv")
+head(data)
+```
+### Questions I Can Answer:
+1.Plot top ten test_strains with highest level of THC and top ten strains with highest level of CBD.
+
+2.Plot different THC levels in different strain_categories and plot different CBD levels in different strains.
+
+3.What are the top two labs that produces the highest levels of THC and CBD?
+
+4.What are the top six organizations that produces the highest levels of THC and CBD?
+
+### Data Quality Issues:
+
+One data quality issue I will face is there are many missing values in the strain_category column as these tests did not match to a Leafy strain. This can be solved by using the na.rm = TRUE argument while conducting my tests and analyses.
+
+Another data quality issue I will face is that some of the strains in the test_strain column repeat causing multiple values of thc_max or cbd_max for one test_strain. I can use the unique() argument to help with this.
+
+### Data Analysis Questions
+
+1.Top ten test_strains with highest level of THC and top ten strains with highest level of CBD. Plot them.
+```{r}
+#THC
+highTHCten <- arrange(data,desc(thc_max))%>%
+  select(test_strain,thc_max)%>%
+  top_n(10)
+highTHCten
+#In finding the top ten_strains with the highest levels of THC, I have noticed that some of the strains have the maximum level of 100. I will make a new output with all of these strains, rather than just the top ten.
+
+highTHC <- filter(data,thc_max == 100)%>%
+  select(test_strain,thc_max)
+
+count(highTHC)
+
+highTHC <- filter(data,thc_max == 100)%>%
+  select(test_strain,thc_max)%>%
+  unique
+
+#From this I have discovered that there are 12 test_strains in the list with the highest THC level, and without duplicates there are 6. 
+
+ggplot(highTHCten, aes(x = test_strain,y = thc_max)) + geom_point() +
+  ggtitle(label = "Highest Level THC Strains")
+
+#CBD
+highCBD <- arrange(data,desc(cbd_max))%>%
+  select(test_strain,cbd_max)%>%
+  top_n(10)
+highCBD
+#For CBD, none of the strands had level 100 of CBD as did THC. The highest level here is 96.95.
+
+ggplot(highCBD, aes(x = test_strain,y = cbd_max)) + geom_point() +
+  ggtitle(label = "Highest Level CBD Strains")
+
+allHighTHC <- filter(data,thc_max > 80)%>%
+  select(test_strain)
+count(allHighTHC)
+
+allHighCBD <- filter(data,cbd_max > 80)%>%
+  select(test_strain)
+count(allHighCBD)
+
+summary(highTHCten)
+summary(highCBD)
+```
+I was able to identify the top ten test_strains with the highest level of THC as Jilly Dream, Dutch Treat, Onion Creek, Mixed, UW Purple Kusg, Cheddar Head, Mixed, Mixed, OG Kush, and Mixed. I was able to identify the top ten test_strains with the highest level of CBD as AC/DC, Sour Tsunami #3, Ozma, Harle-Tsu, AC/DC, Yummy, AC/DC, Sour Tsunami, AC/DC, and Sour Amnesia. None of the test_strains overlapped for top ten THC and CBD which makes sense because a strain is likely to be low on the other strain if its high in one strain. In my investigation I discovered that there were 6 unique strains with 100 level THC, whereas there were none with 100 level CBD, closest being 96.95. Looking at the two plots shown above it is clear that there are more strains with higher levels of THC than there are strains with higher levels of CBD. I was able to further confirm this by counting the amount of strains with a THC and CBD level higher than 80, and found that there were 6596 strains higher than 80 for THC, but only 30 for CBD. By looking at the data summaries, we can also see that there seems to be more variation in the levels of CBD than in the levels of THC as the min and max are farther apart.
+
+2.Plot different total THC levels in different strain_categories and plot different total CBD levels in different strains.
+```{r}
+indicaTHC <- filter(data, strain_category == "Indica")%>%
+  top_n(50) %>%
+  select(thc_max) %>%
+  sum
+
+indicaCBD <- filter(data, strain_category == "Indica")%>%
+  top_n(50) %>%
+  select(cbd_max) %>%
+  sum
+
+sativaTHC <- filter(data, strain_category == "Sativa")%>%
+  top_n(50) %>%
+  select(thc_max) %>%
+  sum
+
+sativaCBD <- filter(data, strain_category == "Sativa")%>%
+  top_n(50) %>%
+  select(cbd_max) %>%
+  sum
+
+hybridTHC <- filter(data, strain_category == "Hybrid")%>%
+  top_n(50) %>%
+  select(thc_max) %>%
+  sum
+
+hybridCBD <- filter(data, strain_category == "Hybrid")%>%
+  top_n(50) %>%
+  select(cbd_max) %>%
+  sum
+
+strainCategories = c("Indica","Sativa","Hybrid")
+thcLevels = c(indicaTHC,sativaTHC,hybridTHC)
+
+dataTHC <- data.frame("Strain Categories" = strainCategories,"THC Levels" = thcLevels)
+head(dataTHC)
+
+ggplot(dataTHC, aes(x = Strain.Categories, y = THC.Levels)) + geom_bar(stat="identity") + ggtitle(label = "Total THC in Strain Categories")
+
+cbdLevels = c(indicaCBD,sativaCBD,hybridCBD)
+
+dataCBD <- data.frame("Strain Categories" = strainCategories,"CBD Levels" = cbdLevels)
+head(dataCBD)
+
+ggplot(dataCBD, aes(x = Strain.Categories, y = CBD.Levels)) + geom_bar(stat="identity") + ggtitle(label = "Total CBD in Strain Categories")
+
+summary(dataTHC)
+summary(dataCBD)
+```
+For this question, I took the top 50 highest levels of THC and CBD for each strain category and added them together to get the total THC and CBD level for each strain category. I was then able to compare the different strain categories to each other in terms of their total THC and CBD levels. I discovered that the THC levels were much higher than the CBD levels overall. I also discovered that for both THC and CBD, the categories went from hybrid to indica to sativa in terms of greatest to least total amount. This makes it seem that the strain category of sativa always has the lowest amount of CBD and THC, while indica has the second highest amount, and hybrid always has the highest. Looking at the data summaries, it looks like the minimum total THC level is 215797 and the maximum is 734108, while the minimum CBD level is 2452 and the maximum is 7723, showing how they represent extremely different amounts.
+
+3.What are the top two labs that produces the highest levels of THC and CBD?
+```{r}
+highTHClab <- arrange(data,desc(thc_max))%>%
+  select(lab_name,thc_max)%>%
+  unique%>%
+  top_n(2)
+head(highTHClab)
+
+ggplot(highTHClab, aes(x = lab_name, y = thc_max)) + geom_bar(stat="identity") + ggtitle(label = "Top Two Labs that Produce Highest Levels of THC")
+
+highCBDlab <- arrange(data,desc(cbd_max))%>%
+  select(lab_name,cbd_max)%>%
+  top_n(2)
+head(highCBDlab)
+
+ggplot(highCBDlab, aes(x = lab_name, y = cbd_max)) + geom_bar(stat="identity") + ggtitle(label = "Top Two Labs that Produce Highest Levels of CBD")
+
+summary(highTHClab)
+summary(highCBDlab)
+```
+I was able to successfully find the top two labs that produce the highest level of THC and CBD. For the highest levels of THC, the labs called the Green Grower Labs and Testing Technologies both were the top two producers of THC producing a level of 100. These could have been other labs as there were more than two labs that produce a level of 100 THC. The top two CBD producing labs were called Integrity Labs and Trace Analytics, producing a level of 96.94 and 95.18 respectively. Here again we see that the maximum THC levels produced were higher than the maximum CBD levels produced.
+
+4.What are the top six organizations that produces the highest levels of THC and CBD?
+```{r}
+highTHCorg<- arrange(data,desc(thc_max))%>%
+  select(org_name,thc_max)%>%
+  unique%>%
+  top_n(6)
+
+ggplot(highTHCorg, aes(x = org_name, y = thc_max)) + geom_bar(stat="identity") + ggtitle(label = "Top Six Organizations that Produce Highest Levels of THC") + coord_flip()
+
+highCBDorg <- arrange(data,desc(cbd_max))%>%
+  select(org_name,cbd_max)%>%
+  top_n(6)
+
+ggplot(highCBDorg, aes(x = org_name, y = cbd_max)) + geom_bar(stat="identity") + ggtitle(label = "Top Six Organizations that Produce Highest Levels of CBD") + coord_flip()
+
+summary(highTHCorg)
+summary(highCBDorg)
+```
+
+I was able to successfully determine the top six organizations that produce the highest levels of THC and CBD. The top six organizations that produced the highest levels of THC were Henderson Distribution, Eleven Window Ventures, Ethos Extracts, Fairwinds Manufacturing, Craft Elixers, and Cleo. The top six organizations that produced the highest levels of CBD were Northwest Wonderland, Odo, Green Labs, Northwest Cannabis Solutions, Craft Elixers, and Two Heads Co. Here again we see that the top THC producing organizations produced at levels close to 100, whereas the top CBD producing organizations produced at levels closer to 95, and with more variability as it ranges from 91.57 to 96.95, whereas for THC it only ranges from 99.78 to 100.00.

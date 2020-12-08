@@ -1,0 +1,197 @@
+Universities are typically opaque, bureaucratic institutions. Many public schools such as the University of North Carolina system make [data about university employees publically](http://www.newsobserver.com/news/databases/public-salaries/) available. Using this dataset what can we learn about the university?
+
+
+## Instructions
+
+- Submit responses to Sakai
+- **Submit only the html output from your markdown response.** Files that do not *knit* will **not be considered valid.**
+
+If there is a knitting error, and you can't identify the source after substantial effort, change the `eval` option in the problematic chunk to `FALSE` so that you can at least turn in the rest of the assignment. 
+
+Done like so
+```
+{r, eval = FALSE}
+
+```
+
+**But you will not get any credit for that particular response.** All responses must display the output and code requested in order to receive credit.
+
+In addition,
+
+- use the `tidyverse` and `dplyr` functions to answer the following questions
+- submit just the .Rmd file to Sakai
+- pay careful attention to the questions
+- **return** something means just print it out. Similarly for questions **What is ...** just print out the answer
+
+Example
+
+Q: What is the sum of the first 10 positive integers?
+```{r}
+sum(1:10)
+```
+
+- **create** or **save** means save a variable
+
+Create a variable `x` with the sum of the first 10 positive integers.
+```{r}
+x <- sum(1:10)
+```
+
+
+
+# The data
+
+```{r}
+library(tidyverse)
+```
+
+
+First download the data set from Ryan Thornburg's website (it is also on stor390's github repo). You may want to set `cache=TRUE` for this chunk so you don't have to download the data set every time you run the script.
+```{r setup, message=FALSE, cache=FALSE}
+data <- read_csv("http://ryanthornburg.com/wp-content/uploads/2015/05/UNC_Salares_NandO_2015-05-06.csv")
+```
+
+Take a first look at the data
+```{r}
+str(data)
+head(data)
+```
+
+## Tips
+
+- Read through the `dplyr` lecture slides to date.
+
+- `fte` means full time employee
+
+
+# Assignment
+
+## Question 0
+The data come from the same source as this [N\&O database](https://www.newsobserver.com/news/databases/public-salaries/article11863496.html), but captured in May 2015.
+
+Based on the information in the link above and on inspection of the dataset using `head`, `str` etc., briefly answer the following questions. If you do not have clear evidence for an answer, say so and justify a guess. If you know nothing at all from the resources above, say 'I don't know'.
+
+You need only use the resources above to answer these questions.
+
+**Q:** Who generates the data in this dataset?
+
+**A:**
+
+**Q:** Does the dataset include employee pay from *all* sources?
+
+**A:**
+
+**Q:** Does the `totalsal` variable give salary actually paid to the employee in a given year?
+
+**A:**
+
+**Q:** What does the `employed` variable represent?
+
+**A:**
+
+## Question 1
+Return a data frame with columns: name, dept, age,totalsal 
+```{r}
+#
+```
+
+Return a data frame with columns: statesal, nonstsal,totalsal using one of the `select_helpers` functions
+```{r}
+#
+```
+
+## Question 2 
+Rename the `fte` column to `fulltime`. Make sure this change is saved (i.e. `data <- ...`).
+```{r}
+#
+```
+
+## Question 3 
+
+What is the mean salary in the Neurosurgery department?
+
+```{r}
+#
+```
+
+
+Return a data frame with employee's in the Neurosurgery department making more than $500,000.  
+```{r}
+#
+```
+
+
+**Q:** Why might these professors be so well paid?
+
+**A:**
+
+## Question 4 
+What is the total amount that full time Dermatology employees get paid?
+
+
+```{r}
+#
+```
+
+
+## Question 5
+
+Create a data frame called radio_dept whose rows are the employees from the Radiology department. 
+
+- include only the following columns: name, position, age, nonstsal, totalsal. 
+- order the employees by salary
+
+Use pipes `%>%` to make your code readable.
+
+```{r }
+#
+```
+
+
+## Question 6
+
+Create a data frame called `dept_summary`  whose rows are the departments and  whose columns are: department size, mean department salary, median department salary, and maximum salary (using totalsal for salary). 
+
+```{r }
+#
+```
+
+Order the departments by highest mean salary and print the 10 highest paid departments. 
+
+
+```{r }
+#
+```
+
+Order the departments by highest median salary and print the 10 highest paid departments. 
+
+```{r }
+#
+```
+
+**Q:** Why do these lists differ? If you were asked for the top 10 best paid departments at UNC which summary would you choose and why?
+
+**A:**
+
+## Question 7
+How many departments have at least 10 employees?
+```{r }
+#
+```
+
+
+## Question 8
+Which department hired the most people in 2010? Hint: you probably have to modify `hiredate`.
+```{r }
+#
+```
+
+## Question 9
+Make a new data frame called `dept_big` that includes only departments with at least 20 employees, and save it as a new object (i.e. `dept_big <- ...`)
+```{r }
+#
+```
+
+
+## Question 10
+Repeat the analysis of Q 6 but with `dept_big` instead of the original dataset, and using `dept_summary_big` instead of `dept_summary`. Answer all questions of Q 6 but for `dept_summary_big`, including the short-answer response.
