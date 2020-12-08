@@ -1,0 +1,29 @@
+---
+title: "Tutorial Five"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+dp <- read_csv('https://github.com/firstlookmedia/the-condemned-data/raw/master/the-condemed-data.csv')
+```
+
+
+```{r}
+dp <- mutate(dp, Status = tolower(Status),
+             Status = case_when(Status == "executed" ~ "exec", 
+                                Status == "not currently on death row" ~ "ndr",
+                                Status == "on death row" ~ "dr"))
+
+dp <- select(dp,-currently_on_death_row,-executed)
+```
+```{r}
+dp <- mutate(dp, volunteer_execution = ifelse(!is.na(volunteer_execution), "v_exec", NA),died = ifelse(!is.na(died), "died", NA),suicide = ifelse(!is.na(suicide), "suic", NA),commuted = ifelse(!is.na(commuted), "comm", NA),exonerated = ifelse(!is.na(exonerated), "exon", NA),resentenced = ifelse(!is.na(resentenced), "res", NA),released = ifelse(!is.na(released), "rel", NA))
+```
+
+```{r}
+outcome <- unite(dp, "volunteer_execution","died","suicide","commuted","exonerated","resentenced","released",volunteer_execution:released, na.rm = TRUE, remove = FALSE)
+outcome
+```
+
+

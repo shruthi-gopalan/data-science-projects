@@ -1,0 +1,29 @@
+---
+title: "Tutorial Eight"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+art <- read_csv("https://github.com/MuseumofModernArt/collection/blob/master/Artworks.csv?raw=true")
+```
+
+```{r}
+View(art)
+```
+
+```{r}
+separate(art, ConstituentID, into = c("firstID", "secondID","objectID"), sep = ",",convert = TRUE)%>%
+  select("firstID", "secondID","objectID")
+```
+```{r}
+separate(art, Gender, into = c("Gender1", "Gender2","Gender3"), sep = " ",convert = TRUE)%>%
+  select("Gender1", "Gender2","Gender3")
+```
+```{r}
+select(art,Height,Width)
+
+art$`Height (cm)` <- art$Height
+```
+

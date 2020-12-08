@@ -1,0 +1,9 @@
+---
+title: "Tutorial Two"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+bison <- read_csv("bison")
+```

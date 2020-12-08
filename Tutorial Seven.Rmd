@@ -1,0 +1,46 @@
+---
+title: "Tutorial Seven"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+dp <- read_csv('https://github.com/firstlookmedia/the-condemned-data/raw/master/the-condemed-data.csv') %>%
+  mutate(Status = tolower(Status), Status = case_when(Status == "executed" ~ "exec", 
+                                    Status == "not currently on death row" ~ "ndr",
+                                    Status == "on death row" ~ "dr")) %>%
+  select(-currently_on_death_row, -executed) %>%
+  mutate(volunteer_execution = ifelse(!is.na(volunteer_execution), "v_exec", NA),
+         died = ifelse(!is.na(died), "died", NA),
+         suicide = ifelse(!is.na(suicide), "sui", NA),
+         commuted = ifelse(!is.na(commuted), "com", NA),
+         exonerated = ifelse(!is.na(exonerated), "exon", NA),
+         resentenced = ifelse(!is.na(resentenced), "resen", NA),
+         released = ifelse(!is.na(released), "rel", NA)) %>%
+  unite("outcome", volunteer_execution, died,
+        suicide, commuted, exonerated, resentenced, released, na.rm = TRUE, remove = TRUE) %>%
+  select(-DOB, -current_sentence, -sentencing_date)
+```
+
+```{r}
+ggplot(dp, aes(x = Status)) + geom_bar()
+```
+This plot shows us the amount of people on death row, executed, and not on death row compared to each other.
+```{r}
+group_by(dp, Status) %>%
+  filter(n() > 50) %>%
+  ggplot(aes(x = Status, fill = outcome)) + geom_bar(position = "fill") + theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45))
+```
+This plot shows us the different outcomes of each person in the three different status categories of on death row, executed, and not on death row.
+
+```{r}
+count(dp,gender, sentencing_year) %>%
+  ggplot(aes(x = sentencing_year, y = n, color = gender)) + geom_line() + 
+  ggtitle("Death sentences by year and gender")
+```
+This plot shows the difference in the amount of death sentences per year for males vs females. The amount of death sentences for females is drastically lower than that of males for all of the years, although the amount of death sentences for males seems to increase as the years go toward 1995 and decrease after that year.

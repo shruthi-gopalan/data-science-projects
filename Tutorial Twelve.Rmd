@@ -1,0 +1,54 @@
+---
+title: "Tutorial Twelve"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+beauty <- read_csv("https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/beauty.csv")
+```
+
+```{r}
+df = c("yippee", "YIPEE!", "Yipee?", "?", "yipe6!")
+grep("[A-z][!?]", df, value = TRUE)
+```
+
+```{r}
+str_count(beauty$line, "[A-z][!?]") %>%
+  sum()
+```
+
+```{r}
+turd <- c("What about that Gaston?  He's a handsome fellow!", "Who does she think she is?", "That girl has tangled with the wrong man.",  "No one says 'no' to Gaston!", "Gaston, you've got to pull yourself together!")
+```
+
+```{r}
+grep("Gaston", turd, value = T)
+```
+
+```{r}
+grep("Gaston.!", turd, value = T)
+```
+
+```{r}
+grep("Gaston.*!", turd, value = T)
+```
+
+```{r}
+grep("Gaston[[:alpha:][:space:],;']*!", turd, value = T)
+```
+
+```{r}
+beauty <- read_csv("https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/beauty.csv")
+```
+
+```{r}
+group_by(beauty, person) %>%
+  summarize(exclaim = str_count(line, "Gaston[[:alpha:][:space:],;']*!") %>% sum) %>%
+  filter(exclaim > 0)
+```
+
+```{r}
+filter(beauty, grepl("Gaston[[:alpha:][:space:],;']*!", line))
+```
+

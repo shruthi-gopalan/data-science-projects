@@ -1,0 +1,24 @@
+---
+title: "Programming Part A Tutorial"
+output:
+  html_document:
+    df_print: paged
+---
+
+1. Create a list of matchups for teams numbered 1 to 6, where team 1 plays team 2, 3 plays 4 etc. Each matchup should be a vector, e.g. c(1, 2) is the first element of the list.
+```{r}
+games <- list(c(1, 2), c(3, 4), c(5, 6))
+games
+```
+2. Using a for loop randomly choose winners from each matchup, saving the output into a new list called win
+```{r}
+win <- vector(mode = "list", length = 3)
+for (j in 1:length(games)){
+  win[[j]] <- sample(games[[j]],size = 1)
+}
+```
+3. Display the win list
+```{r}
+win
+```
+

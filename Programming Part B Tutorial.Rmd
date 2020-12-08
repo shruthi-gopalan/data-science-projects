@@ -1,0 +1,150 @@
+---
+title: "Programming Part B Tutorial"
+output: html_notebook
+---
+
+
+```{r}
+df = data.frame(team_one = 1:8, team_two = 9:16)
+apply(df, 1, sample, size = 1)
+```
+
+
+```{r}
+df = data.frame(team_one = 1:8, team_two = 9:16)
+
+win = apply(df, 1, sample, size = 1)
+matrix(win, ncol = 2, byrow = TRUE)
+```
+```{r}
+dumb_list <- list(a = c(1, 2), b = c(1, 2, 3, 4), d = c(-1, -2, 3))
+
+dumb_f <- function(y){
+  max(y) > 2
+}
+
+
+discard(dumb_list, .p = dumb_f)
+```
+
+```{r}
+discard(allPairs, .p = my_function)
+```
+```{r}
+for (i in 1:length(xmas))
+  if(xmas[[i]][1]==xmas[[i]][2])
+    xmas[[i]] <- NULL
+```
+
+
+```{r}
+for (i in 1:length(allPairs))
+  if(allPairs[[i]][1]==allPairs[[i]][2])
+    allPairs[[i]] <- NULL
+```
+
+```{r}
+pairs <- discard(allPairs, .p = function(x){
+  if (x[1] == x[2])
+    TRUE
+  else 
+    FALSE})
+pairs
+```
+my_function <- function(x){
+  if (x[1] == x[2])
+    TRUE
+  else 
+    FALSE
+}
+allPairs[[1]]
+my_function(allPairs[[1]])
+
+allPairs[[2]]
+my_function(allPairs[[2]])
+
+```{r}
+newlist <- list()
+for (i in 1){
+  newlist <- elf(pairs)}
+
+for (i in rest){
+  choice <- sample(i,1)
+  rest <- discard(i, .p = function(x){
+  if (x[1] == choice[[1]][1]){
+    TRUE}
+  else if (x[2] == choice[[1]][2]){
+    TRUE}
+  else
+    FALSE})
+}
+
+
+elf <- function(x){
+  choice <- sample(x,1)
+  rest <- discard(x, .p = function(x){
+  if (x[1] == choice[[1]][1]){
+    TRUE}
+  else if (x[2] == choice[[1]][2]){
+    TRUE}
+  else
+    FALSE})
+  output <- list("choice" = choice,"rest" = rest)
+  return(output)}
+choice
+rest
+elf(pairs)
+```
+```{r}
+newlist <- list()
+
+for (i in 1:length(pairs)){
+  choice <- pairs[i]
+  rest <- discard(pairs, .p = function(x){
+  if (x[1] == choice[[1]][1]){
+    TRUE}
+  else if (x[2] == choice[[1]][2]){
+    TRUE}
+  else
+    FALSE})
+  newlist <- list("choice" = choice,"rest" = rest)
+  print(newlist)}
+
+newlist
+  
+```
+#### Hint
+The instruction might be a little unclear. I will write a dummy loop that does something analogous but for a different situation.
+
+Say I have a vector `x = c(1, 2, 3, 4)` and I want to get the cumulative sum using a loop. (For real, though, don't do it this way. There is a function for that. This is just for demonstration).
+
+I could do it this way
+```{r}
+x <- 1:4
+out <- vector('numeric', length(x))
+out
+out <- x[1]
+out
+for (i in 2:length(x))
+  out[i] <- x[i] + out[i-1]
+
+out
+```
+
+```{r}
+output <- vector("list",length = 4)
+output[[1]] <- elf(pairs)
+nextpick <- output[[1]][[2]]
+names(output) <- c("Pick 1","Pick 2","Pick 3","Pick 4")
+
+for (i in 2:4){
+  output[[i]] <- elf(nextpick)
+  nextpick <- output[[i]][[2]]
+}
+
+for (i in 1:4){
+  print(output[[i]]$choice)}
+
+
+```
+

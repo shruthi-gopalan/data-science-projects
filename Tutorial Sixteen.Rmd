@@ -1,0 +1,66 @@
+---
+title: "Tutorial Sixteen"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+bison <- read_csv('https://raw.githubusercontent.com/brendanrbrown/brendanrbrown.github.io/master/smallbison.csv')
+data.matrix(bison)
+K <- 4
+set.seed(1305)
+m <- kmeans(data.matrix(bison), centers = K)
+bison <- mutate(bison, cluster = factor(m$cluster))
+
+group_by(bison, cluster) %>% 
+  summarise(n = n(), latitude = mean(latitude),
+            longitude = mean(longitude),
+            dtime = mean(dtime))
+
+cent <- as_tibble(m$centers) %>% mutate(cluster = factor(1:K))
+ggplot(bison, aes(x = latitude, y = longitude, color = cluster)) + geom_point(size = 3, alpha = .7) +
+  theme_bw() + scale_color_brewer(type = "qual", palette = "Set1") +
+  geom_point(data = cent, size = 10, shape = 13)
+```
+
+```{r}
+K <- 6
+set.seed(1305)
+m <- kmeans(data.matrix(bison), centers = K)
+bison <- mutate(bison, cluster = factor(m$cluster))
+
+group_by(bison, cluster) %>% 
+  summarise(n = n(), latitude = mean(latitude),
+            longitude = mean(longitude),
+            dtime = mean(dtime))
+
+cent <- as_tibble(m$centers) %>% mutate(cluster = factor(1:K))
+ggplot(bison, aes(x = latitude, y = longitude, color = cluster)) + geom_point(size = 3, alpha = .7) +
+  theme_bw() + scale_color_brewer(type = "qual", palette = "Set1") +
+  geom_point(data = cent, size = 10, shape = 13)
+```
+
+```{r}
+library(plotly) # https://plot.ly/r/getting-started/
+plot_ly(data = bison, type = "scatter3d", mode = "markers", opacity = .5,
+        x = ~latitude, y = ~longitude, z = ~dtime, color = ~cluster)
+```
+
+```{r}
+bison$lattitude = scale(bison$latitude)[,1]
+bison$longitude = scale(bison$longitude)[,1]
+bison$dtime = scale(bison$dtime)[,1]
+
+K <- 4
+set.seed(1305)
+m <- kmeans(data.matrix(bison), centers = K)
+bison <- mutate(bison, cluster = factor(m$cluster))
+
+cent <- as_tibble(m$centers) %>% mutate(cluster = factor(1:K))
+ggplot(bison, aes(x = latitude, y = longitude, color = cluster)) + geom_point(size = 3, alpha = .7) +
+  theme_bw() + scale_color_brewer(type = "qual", palette = "Set1") +
+  geom_point(data = cent, size = 10, shape = 13)
+
+#The two plots look the same however the second plot has fewer clusters but the same amount of points in the same locations.
+```
+

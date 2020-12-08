@@ -1,0 +1,35 @@
+---
+title: "Tutorial Three"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+forestfires <- read.csv("~/Downloads/forestfires.csv")
+```
+
+```{r}
+mutate(forestfires,temp = temp*(9/5)+32,wind = wind/1.609,area = area*2.471)
+forestfires
+```
+
+```{r}
+cold_days <- filter(forestfires,temp < 50,wind>3)
+cold_days
+```
+```{r}
+cold_days$chill <- 35.74 + 0.6215 * cold_days$temp + (cold_days$wind^(0.16))*(0.4275*cold_days$temp-35.75)
+cold_days
+```
+```{r}
+cold_days <- group_by(cold_days,month)
+cold_days
+```
+```{r}
+summarize(cold_days, mean = mean(temp, na.rm = TRUE), median = quantile(temp, .5, na.rm = TRUE), sd = sd(temp, na.rm = TRUE))
+
+summarize(cold_days, mean = mean(chill, na.rm = TRUE), median = quantile(chill, .5, na.rm = TRUE), sd = sd(chill, na.rm = TRUE))
+
+summarize(cold_days, mean = mean(area, na.rm = TRUE), median = quantile(area, .5, na.rm = TRUE), sd = sd(area, na.rm = TRUE))
+```
+

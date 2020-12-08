@@ -1,0 +1,46 @@
+---
+title: "Classification Models Part A Tutorial"
+output:
+  html_document:
+    df_print: paged
+---
+#1. Load the park dataset as above
+```{r}
+library(tidyverse)
+library(ISLR)
+park <- read_csv('http://www.dsi.uminho.pt/~pcortez/forestfires/forestfires.csv')
+```
+#2. Create a new variable called fire such that fire = 1 if area > 0 and fire=0 otherwise
+```{r}
+for (i in 1:length(park$area)){
+  if (park$area[i] > 0.0){
+    park$fire[i] <- 1}
+    else{
+      park$fire[i] <- 0
+    }
+}
+```
+#3. Convert the following variables to factor type, to tell glm these are categorical:
+#-  X, Y, month, day
+#-  ideally using a mutate_at statement
+```{r}
+head(park)
+park%>%
+  mutate(X=as.factor(X),Y=as.factor(Y),month=as.factor(month),day=as.factor(day))
+```
+#4. Display the number of observations in each fire category
+```{r}
+sum(park$fire > 0)
+sum(park$fire == 0)
+```
+#5. Run a logistic model on the outcome fire using all other variables as regressors except area
+```{r}
+mod <- lm(fire ~ X + Y + month + day + FFMC + DMC + DC + ISI + temp + RH + wind + rain, data = park)
+summary(mod)
+```
+#6. Make a scatter plot of the estimated probabilities of fire as a function of temp, with different colors for month
+```{r}
+park%>%
+  ggplot(aes(x = temp, y = fire, color = month)) + geom_jitter(alpha = .5)
+```
+

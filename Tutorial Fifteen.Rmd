@@ -1,0 +1,32 @@
+---
+title: "Tutorial Fifteen"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+set.seed(100)
+x <- runif(10000, min = -1, max = 1)
+y <- runif(10000, min = -1, max = 1)
+z <- runif(10000, min = -1, max = 1)
+
+d <- tibble(x = x, y = y, z = z)
+ggplot(d, aes(x = x, y = y)) + geom_point()
+```
+
+```{r}
+ggplot(d) + geom_density(aes(x), fill = "steelblue4")
+```
+
+```{r}
+a <- (x^2 + y^2 + z^2) < 1
+print(sum(a)/10000 * 8)
+```
+
+```{r}
+print(pi^(3/2)/gamma(3/2 + 1))
+```
+

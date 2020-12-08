@@ -1,0 +1,36 @@
+---
+title: "Tutorial Nine"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+artists <- read_csv("https://github.com/MuseumofModernArt/collection/blob/master/Artists.csv?raw=true")
+art <- read_csv("https://github.com/MuseumofModernArt/collection/blob/master/Artworks.csv?raw=true")%>%
+  separate(ConstituentID, into = c("firstID", "secondID"), sep = ",", convert = TRUE)
+```
+
+```{r}
+artists%>%
+  select(ConstituentID)
+
+art
+#Primary Key: Constituent ID
+```
+```{r}
+inner_join(artists,art,by = c("ConstituentID" = "firstID"))
+```
+```{r}
+inner_join(artists,art,by = c("ConstituentID" = "secondID"))
+```
+Second ID has much higher constituent IDs, because not every piece of art has a second ID, but every piece has a first ID, therefore it is better to use first ID.
+
+```{r}
+right_join(artists,art,by = c("ConstituentID" = "firstID"))
+```
+```{r}
+artists%>%
+  select(DisplayName,Nationality)
+
+```
+

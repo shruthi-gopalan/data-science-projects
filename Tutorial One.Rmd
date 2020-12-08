@@ -1,0 +1,53 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Squirrel
+##Big Squirrel
+
+![](https://media.npr.org/assets/img/2017/04/25/istock-115796521-fcf434f36d3d0865301cdcb9c996cfd80578ca99-s800-c85.jpg)
+
+```{r}
+y <- sample(1:10,4)
+sort(y)
+```
+```{r}
+data.frame(words = c("W","T","F?"),numbers=c(2,2^2,2^3))
+```
+
+```{r}
+x <- seq(1,10)
+big_x <- x < 5
+tibble(x,big_x)
+```
+
+```{r}
+library('tidyverse')
+```
+
+```{r}
+x <- sample(letters,10)
+tibble(x,paste0(x,"!"))
+```
+```{r}
+#1
+install.packages(starwars)
+#2
+df <- data.frame(starwars$name,starwars$height,starwars$mass,starwars$species)
+#3
+df$mph <- starwars$mass/starwars$height
+#4
+df$starwars.mass <- df$starwars.mass/2.54
+#5
+mean(df$starwars.height,na.rm=TRUE)
+max(df$starwars.height,na.rm=TRUE)
+median(df$starwars.height,na.rm=TRUE)
+#?starwars
+```
+
+

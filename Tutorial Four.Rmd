@@ -1,0 +1,22 @@
+---
+title: "Tutorial Four"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+forestfires <- read.csv("~/Downloads/forestfires.csv")
+df <- tibble(x = c(1, 2, 3, 4, 5), y = c(2, 2, 1, 3, NA), z = c("pest", "past", "pest", "p ast", "last"))
+arrange(df, x, y)
+```
+
+```{r}
+areaDesc <- group_by(forestfires,month)%>%
+  mutate(month_area = sum(area))%>%
+  arrange(desc(month_area))
+areaDesc$prop_area <- summarize(areaDesc,
+```
+
+```{r}
+filter(areaDesc,prop_area,area,month,rain,wind,temp)
+```
+

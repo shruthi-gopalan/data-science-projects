@@ -1,0 +1,68 @@
+---
+title: "Prediction, Cross Validation, Part A Tutorial"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+library(rsample)
+library(tidyverse)
+library(e1071)
+library(reshape2)
+```
+
+
+A)
+```{r}
+split <- function(df){
+  sample_size = round(nrow(df)*.70)
+  train <- sample_n(df, sample_size)
+  sample_id <- as.numeric(rownames(train))
+  test <- df[-sample_id,]
+  output <- list("train" = train,"test" = test)
+  return(output)}
+
+split(mtcars)
+```
+
+B)
+
+```{r}
+park <- read_csv('http://www.dsi.uminho.pt/~pcortez/forestfires/forestfires.csv') %>%
+  mutate(fire = ifelse(area > 0, 1, 0)) %>%
+  mutate_at(.vars = vars(X, Y, month, day, fire), as.factor) %>%
+  select(-area)
+```
+
+```{r}
+set.seed(1305)
+park_sp <- initial_split(park, prop = .8)
+
+get_accuracy <- function(df_train, df_test, kernel, cost, gamma){
+  m <- svm(fire ~., data = df_train, cost = cost, kernel = kernel, gamma = gamma)
+  df_test <- mutate(df_test,
+                    yhat = predict(m, newdata = df_test),
+                    err = yhat != fire)
+  return(list(df_test = df_test, accuracy = mean(!df_test$err))) 
+}
+
+get_accuracy(training(park_sp), testing(park_sp), "radial", cost = 10, gamma = 1)
+
+```
+
+```{r}
+accuracies <-list()
+for(i in seq(.5,5,.25)) {
+      accuracy <- get_accuracy(training(park_sp), testing(park_sp), "radial", cost = i, gamma = 1)
+      accuracies <- c(accuracies, accuracy$accuracy)
+}
+
+df <- data.frame(c("accuracies" = accuracies))
+df <- melt(df)
+
+df[1] <- seq(.5,5,.25)
+df
+
+ggplot(df, aes(x = variable,y = value)) + geom_jitter()
+```
+

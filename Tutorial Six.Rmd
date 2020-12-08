@@ -1,0 +1,56 @@
+---
+title: "Tutorial Six"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+dp <- read_csv('https://github.com/firstlookmedia/the-condemned-data/raw/master/the-condemed-data.csv')
+head(dp)
+```
+
+```{r}
+dp <- mutate(dp, 
+             Status = tolower(Status),
+             Status = case_when(Status == "executed" ~ "exec", 
+                                    Status == "not currently on death row" ~ "ndr",
+                                    Status == "on death row" ~ "dr")) %>%
+  select(-currently_on_death_row, -executed) %>%
+  mutate(volunteer_execution = ifelse(!is.na(volunteer_execution), "v_exec", NA),
+         died = ifelse(!is.na(died), "died", NA),
+         suicide = ifelse(!is.na(suicide), "sui", NA),
+         commuted = ifelse(!is.na(commuted), "com", NA),
+         exonerated = ifelse(!is.na(exonerated), "exon", NA),
+         resentenced = ifelse(!is.na(resentenced), "resen", NA),
+         released = ifelse(!is.na(released), "rel", NA)) %>%
+  unite("outcome", volunteer_execution, died,
+        suicide, commuted, exonerated, resentenced, released, na.rm = TRUE, remove = TRUE)
+```
+
+```{r}
+select(dp, -DOB, -current_sentence, -sentencing_date)
+```
+
+```{r}
+group_by(dp, outcome) %>%
+  filter(n()>20) 
+```
+
+```{r}
+  ggplot(dp, aes(x = outcome)) + geom_bar(fill = "blue2") +
+  ggtitle(label = "Count by outcome in barplot") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))  
+```
+There are many empty columns in the plot. It may look better if they are removed from the graph.
+The plot shows what most prisoners' status are.
+```{r}
+filter(dp, gender== "Male") %>%
+count(., sentencing_year) %>%
+  ggplot(aes(x = sentencing_year, y = n)) + geom_line() + 
+  ggtitle("Male prisoners' sentence by year")
+```
+The line plot didn't show the amount of male priosoners' year of sentence.
+The plot shows the change in pattern of males sentence by year.

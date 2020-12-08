@@ -1,0 +1,27 @@
+---
+title: "Programming Part C Tutorial"
+output: html_notebook
+---
+
+```{r}
+play <- function(m) {
+  win <- apply(m, 1, sample, size = 1)
+  
+  if (length(win) <= 1)
+    win
+  else
+    matrix(win, ncol = 2, byrow = TRUE)
+}
+```
+
+```{r}
+n <- 6
+out <- vector("list", n + 1)
+out[[1]] <- matrix(1:2^n, ncol = 2, byrow = TRUE)
+
+for (i in 1:n)
+  out[[i+1]] <- play(out[[i]])
+
+out
+```
+
